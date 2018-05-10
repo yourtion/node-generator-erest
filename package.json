@@ -1,0 +1,35 @@
+{
+  "name": "generator-erest",
+  "version": "0.1.0",
+  "description": "Yoman generator for erest. Easy build rest api",
+  "files": [
+    "generators"
+  ],
+  "scripts": {
+    "lint": "eslint generators --fix",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourtion/node-generator-erest.git"
+  },
+  "keywords": [
+    "erest",
+    "yeoman",
+    "generator",
+    "yeoman-generator"
+  ],
+  "author": "Yourtion <yourtion@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yourtion/node-generator-erest/issues"
+  },
+  "homepage": "https://github.com/yourtion/node-generator-erest#readme",
+  "dependencies": {
+    "yeoman-generator": "^2.0.5"
+  },
+  "devDependencies": {
+    "eslint": "^4.19.1",
+    "eslint-config-guo": "^0.8.0"
+  }
+}
