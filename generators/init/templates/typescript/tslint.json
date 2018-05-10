@@ -1,0 +1,10 @@
+{
+  "extends": "tslint:recommended",
+  "rules": {
+    "no-var-requires": false,
+    "arrow-parens": false,
+    "no-namespace": false,
+    "object-literal-sort-keys": false,
+    "member-ordering": false
+  }
+}

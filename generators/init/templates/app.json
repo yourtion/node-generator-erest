@@ -1,0 +1,14 @@
+{
+  "apps": [{
+    "name": "<%= projectName %>",
+    "script": "src/index.ts",
+    "wait_ready": true,
+    "kill_timeout" : 5000,
+    "listen_timeout" : 3000,
+    "env": {
+      "NODE_ENV": "production"
+    },
+    "merge_logs": true,
+    "log_date_format": "MM-DD HH:mm:ss"
+  }]
+}

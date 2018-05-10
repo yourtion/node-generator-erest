@@ -1,0 +1,16 @@
+{
+  "extends": "../tsconfig",
+  "compilerOptions": {
+    "target": "esnext",
+    "rootDirs": [
+      "../src",
+      "."
+    ],
+    "outDir": "../dist/test",
+    "pretty": true,
+  },
+  "include": [
+    "../src/**/*.ts",
+    "./**/*.ts"
+  ],
+}
