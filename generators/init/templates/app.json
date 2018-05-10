@@ -1,7 +1,7 @@
 {
   "apps": [{
     "name": "<%= projectName %>",
-    "script": "src/index.ts",
+    "script": "<%= main %>",
     "wait_ready": true,
     "kill_timeout" : 5000,
     "listen_timeout" : 3000,

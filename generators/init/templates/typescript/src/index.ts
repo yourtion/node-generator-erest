@@ -1,6 +1,5 @@
 /**
  * @file 入口文件
- * @author <%= author %>
  */
 
 import http from "http";

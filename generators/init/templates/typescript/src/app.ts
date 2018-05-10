@@ -1,6 +1,5 @@
 /**
  * @file app 入口文件
- * @author <%= author %>
  */
 
 import expressRaw, {Express, NextFunction} from "express";
@@ -22,7 +21,7 @@ app.use(express.static("public"));
 app.use("/api", router);
 // 路由处理
 // Session
-router.use(middlewares.session());
+// router.use(middlewares.session());
 // 获取IP
 router.use(middlewares.parseIp);
 

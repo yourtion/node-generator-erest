@@ -1,6 +1,5 @@
 /**
  * @file API文件
- * @author <%= author %>
  */
 
 import API from "erest";
