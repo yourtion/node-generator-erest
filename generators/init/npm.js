@@ -1,11 +1,11 @@
 const fs = require('fs');
 
-function getGitOrigin() {
+function getGitOrigin(gitConfigFile) {
   try {
-    const gitConfig = fs.readFileSync('./.git/config', 'utf-8');
-    const m = gitConfig.match(/\[remote\s+'origin']\s+url\s+=\s+(\S+)\s+/i);
+    const gitConfig = fs.readFileSync(gitConfigFile, 'utf-8');
+    const m = gitConfig.match(/\s+url\s+=\s+(\S+)\s+/i);
     if (m) {
-      return m[1];
+      return m[1].replace(/:/g, '/');
     }
   } catch (_err) {
     return;
@@ -14,6 +14,7 @@ function getGitOrigin() {
 exports.getGitOrigin = getGitOrigin;
 
 exports.prompts = function prompts() {
+  const repo = getGitOrigin(this.destinationPath('./.git/config'));
   return [
     {
       type: 'list',
@@ -48,10 +49,10 @@ exports.prompts = function prompts() {
     },
     {
       name: 'repo',
-      default: getGitOrigin(),
+      default: repo,
       message: 'git repository:',
-      filter: words => {
-        return words
+      filter: repo => {
+        return repo
           .replace(/https?:\/\//, '')
           .replace(/^(.*?)@/, '')
           .replace(/.git$/, '');
@@ -61,7 +62,7 @@ exports.prompts = function prompts() {
       name: 'keywords',
       message: 'keywords',
       filter: words => {
-        return words.split(/\s*,\s*/g);
+        return words && words.split(/\s*,\s*/g);
       },
     },
     {
@@ -72,4 +73,27 @@ exports.prompts = function prompts() {
       choices: ['MIT', 'ISC', 'Apache-2.0', 'AGPL-3.0'],
     },
   ];
+};
+
+exports.genPackage = (base, addtion) => {
+  const pkg = {
+    name: addtion.name,
+    version: addtion.version,
+    description: addtion.description,
+    keywords: addtion.keywords,
+    author: addtion.author,
+    license: addtion.license,
+  };
+  Object.assign(pkg, base);
+  if (addtion.repo) {
+    pkg.repository = {
+      type: 'git',
+      url: `git+https://${addtion.repo}.git`,
+    };
+    pkg.bugs = {
+      url: `https://${addtion.repo}/issues`,
+    };
+    pkg.homepage = `https://${addtion.repo}#readme`;
+  }
+  return pkg;
 };
