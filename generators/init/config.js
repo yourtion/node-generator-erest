@@ -6,14 +6,14 @@ const dependencies = [
   'express-coroutine',
   'express-session',
   'ioredis',
-  'js-yaml',
   'lodash',
   'mysql',
   'pino',
   'squel',
 ];
 
-const dependenciesTypes = [
+const dependenciesTS = [
+  'js-yaml',
   '@types/bluebird',
   '@types/connect-redis',
   '@types/express',
@@ -28,12 +28,20 @@ const dependenciesTypes = [
 
 const devDependencies = ['chai', 'debug', 'mocha', 'prettier', 'supertest', 'ts-node', 'tslint', 'typescript'];
 
-const devDependenciesTypes = ['@types/chai', '@types/debug', '@types/mocha', '@types/prettier', '@types/supertest'];
+const devDependenciesTS = ['@types/chai', '@types/debug', '@types/mocha', '@types/prettier', '@types/supertest'];
 
 exports.getTSDeps = () => {
-  return [].concat(dependencies, dependenciesTypes);
+  return [].concat(dependencies, dependenciesTS);
 };
 
 exports.getTSDevDeps = () => {
-  return [].concat(devDependencies, devDependenciesTypes);
+  return [].concat(devDependencies, devDependenciesTS);
+};
+
+exports.getJSDeps = () => {
+  return dependencies;
+};
+
+exports.getJSDevDeps = () => {
+  return devDependencies;
 };
