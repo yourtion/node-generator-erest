@@ -26,6 +26,9 @@ exports.prompts = function prompts() {
       name: 'name',
       message: 'project name:',
       default: this.appname,
+      validate: input => {
+        return !!input.match('^(?:@[a-z0-9-~][a-z0-9-._~]*/)?[a-z0-9-~][a-z0-9-._~]*$');
+      },
     },
     {
       name: 'shortName',
@@ -36,6 +39,9 @@ exports.prompts = function prompts() {
       name: 'version',
       message: 'version:',
       default: '1.0.0',
+      validate: input => {
+        return !!input.match(/\d+\.\d+\.\d+/);
+      },
     },
     {
       type: 'input',
@@ -64,6 +70,16 @@ exports.prompts = function prompts() {
       filter: words => {
         return words && words.split(/\s*,\s*/g);
       },
+    },
+    {
+      type: 'list',
+      name: 'target',
+      default: 'es6',
+      message: 'typescript target:',
+      when: (res) => {
+        return res.language === 'TypeScript';
+      },
+      choices: ['es5', 'es6', 'esnext'],
     },
     {
       type: 'list',

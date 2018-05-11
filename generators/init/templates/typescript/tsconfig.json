@@ -4,7 +4,7 @@
     "esModuleInterop": true,
     "sourceMap": true,
     "declaration": false,
-    "target": "es6",
+    "target": "<%= target %>",
     "module": "commonjs",
     "moduleResolution": "node",
     "outDir": "dist",

@@ -28,13 +28,14 @@ module.exports = class extends Generator {
     const packageInfo = this.fs.readJSON(this.templatePath(this.lang + '/package.json'));
     this.fs.extendJSON(this.destinationPath('package.json'), genPackage(packageInfo, this.prop));
     if (this.isTS) {
-      this.fs.copy(this.templatePath('typescript/tsconfig.json'), this.destinationPath('tsconfig.json'));
-      this.fs.copy(this.templatePath('typescript/(src|test)/**'), this.destinationPath('src'));
       const info = {
         sessionSecret: utils.randomStr(),
         projectNameShort: this.prop.shortName,
         projectName: this.prop.name,
+        target: this.prop.target,
       };
+      this.fs.copy(this.templatePath('typescript/(src|test)/**'), this.destinationPath('src'));
+      this.fs.copyTpl(this.templatePath('typescript/tsconfig.json'), this.destinationPath('tsconfig.json'), info);
       for (const conf of ['base', 'dev', 'test']) {
         this.fs.copyTpl(
           this.templatePath(`typescript/config/${conf}.yaml`),
