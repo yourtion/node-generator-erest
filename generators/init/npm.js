@@ -24,8 +24,8 @@ exports.prompts = function prompts() {
     },
     {
       name: 'name',
-      message: 'project name:',
-      default: this.appname,
+      message: 'package name:',
+      default: this.appname && this.appname.replace(/\s/g, '-').replace('node-', ''),
       validate: input => {
         return !!input.match('^(?:@[a-z0-9-~][a-z0-9-._~]*/)?[a-z0-9-~][a-z0-9-._~]*$');
       },
@@ -66,9 +66,9 @@ exports.prompts = function prompts() {
     },
     {
       name: 'keywords',
-      message: 'keywords',
+      message: 'keywords:',
       filter: words => {
-        return words && words.split(/\s*,\s*/g);
+        return words && words.split(/\s+|,/g);
       },
     },
     {
@@ -86,7 +86,7 @@ exports.prompts = function prompts() {
       name: 'license',
       default: 'MIT',
       message: 'license:',
-      choices: ['MIT', 'ISC', 'Apache-2.0', 'AGPL-3.0'],
+      choices: ['ISC', 'MIT', 'Apache-2.0', 'AGPL-3.0'],
     },
   ];
 };
