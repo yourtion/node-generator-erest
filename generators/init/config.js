@@ -1,5 +1,4 @@
 const dependencies = [
-  'bluebird',
   'connect-redis',
   'erest',
   'express',
@@ -14,7 +13,6 @@ const dependencies = [
 
 const dependenciesTS = [
   'js-yaml',
-  '@types/bluebird',
   '@types/connect-redis',
   '@types/express',
   '@types/express-session',

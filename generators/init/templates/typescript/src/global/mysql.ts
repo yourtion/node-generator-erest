@@ -2,17 +2,22 @@
  * @file
  * @author Yourtion Guo <yourtion@gmail.com>
  */
-
-/* tslint:disable:unified-signatures */
-
-import Bluebird from "bluebird";
 import mysqlLib from "mysql";
 import { Pool, PoolConnection, QueryOptions } from "mysql";
+import { promisify } from "util";
 import { config } from "./base";
 import { mysqlLogger } from "./logger";
 
-Bluebird.promisifyAll(require("mysql/lib/Connection").prototype);
-Bluebird.promisifyAll(require("mysql/lib/Pool").prototype);
+function pfy(input: any, keys: string[]) {
+  keys.forEach(key => {
+    if (input[key] && typeof input[key] === "function") {
+      input[key + "Async"] = promisify(input[key]);
+    }
+  });
+}
+
+pfy(require("mysql/lib/Connection").prototype, ["query", "beginTransaction", "commit", "rollback"]);
+pfy(require("mysql/lib/Pool").prototype, ["query", "getConnection", "releaseConnection", "end", "release"]);
 
 export interface IQueryPromise {
   (options: string | QueryOptions): Promise<any>;
