@@ -15,6 +15,8 @@ const logger = getLogger("redis");
 
 export const redis = new Redis(config.redis);
 
+redis.on("error", (err) => logger.error(err));
+
 redis.on("connect", () => {
   logger.debug("Redis connected");
 });
