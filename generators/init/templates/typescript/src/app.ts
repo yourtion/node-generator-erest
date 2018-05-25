@@ -2,33 +2,34 @@
  * @file app 入口文件
  */
 
-import expressRaw, {Express, NextFunction} from "express";
+import expressRaw, { Express, NextFunction } from "express";
 import expressCoroutine from "express-coroutine";
+import { v4 as uuid } from "uuid";
 const express = expressCoroutine(expressRaw);
 
 const app: Express = express();
 const router = express.Router();
 
-import { config, errors, getLogger } from "./global";
+import { config, errors, expressLogger, expressMiddle, getLogger } from "./global";
 import { middlewares } from "./libs";
 const logger = getLogger("app");
 
-import apiService, {IRequest, IResponse} from "./api";
+import apiService, { IRequest, IResponse } from "./api";
 
 // 静态文件
 app.use(express.static("public"));
-
 app.use("/api", router);
-// 路由处理
-// Session
-// router.use(middlewares.session());
+
 // 获取IP
 router.use(middlewares.parseIp);
-
+router.use(expressMiddle(expressLogger, "info"));
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
 
 (router as any).use((req: IRequest, res: IResponse, next: NextFunction) => {
+  const reqId = req.header("X-Request-Id") || uuid();
+  req.$log = getLogger(req.path, { reqId });
+  res.setHeader("X-Request-ID", reqId);
   res.error = (err, code) => {
     res.json({
       success: false,
@@ -64,18 +65,18 @@ router.use(express.urlencoded({ extended: true }));
 });
 
 require("./routers");
-apiService.bindRouter(router);
+apiService.bindGroupToApp(router, express);
 
 (router as any).use((err: any, req: IRequest, res: IResponse, next: NextFunction) => {
   if (config.ispro && !err.show) {
-    const path = req.route && req.route.path || req.url;
+    const path = (req.route && req.route.path) || req.url;
     logger.error(path, "params", req.$params);
     res.error(new errors.InternalError(err.code));
   } else {
     res.error(err);
   }
   if (err.log || err.log === undefined) {
-    logger.error(err);
+    expressLogger.error({ req, res, err });
   }
   next();
 });

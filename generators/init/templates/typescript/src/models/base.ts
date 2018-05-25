@@ -148,8 +148,8 @@ export default class Base<T> {
    * @memberof Base
    */
   public debugSQL(name: string) {
-    return (sql: any) => {
-      mysqlLogger.debug(` ${name} : ${sql}`);
+    return (sql: any, ...info: any[]) => {
+      mysqlLogger.debug(name, sql, ...info);
       return sql;
     };
   }
@@ -158,13 +158,13 @@ export default class Base<T> {
    * 查询方法（内部查询尽可能调用这个，会打印Log）
    */
   public query(sql: QueryBuilder | string, connection: IConnectionPromise | IPoolPromise = mysql) {
-    const logger = (connection as IConnectionPromise).debug ? connection as IConnectionPromise : mysqlLogger;
+    const logger = (connection as IConnectionPromise).debug ? (connection as IConnectionPromise) : mysqlLogger;
     if (typeof sql === "string") {
       logger.debug!(sql);
       return connection.queryAsync(sql).catch(err => errorHandler(err));
     }
     const { text, values } = sql.toParam();
-    logger.debug!(sql.toString());
+    logger.debug!(text, values);
     return connection.queryAsync(text, values).catch(err => errorHandler(err));
   }
 
@@ -204,7 +204,7 @@ export default class Base<T> {
   public getByPrimaryRaw(
     connect: IConnectionPromise | IPoolPromise,
     primary: string,
-    fields = this.fields,
+    fields = this.fields
   ): Promise<T> {
     return this.query(this._getByPrimary(primary, fields), connect).then((res: T[]) => res && res[0]);
   }
@@ -229,7 +229,7 @@ export default class Base<T> {
   public getOneByFieldRaw(
     connect: IConnectionPromise | IPoolPromise,
     object: IKVObject = {},
-    fields = this.fields,
+    fields = this.fields
   ): Promise<T> {
     return this.query(this._getOneByField(object, fields), connect).then((res: T[]) => res && res[0]);
   }
@@ -269,7 +269,7 @@ export default class Base<T> {
       .from(this.table)
       .limit(limit);
     Object.keys(conditions).forEach(k =>
-      sql.where(k + (Array.isArray(conditions[k]) ? " in" : " =") + " ? ", conditions[k]),
+      sql.where(k + (Array.isArray(conditions[k]) ? " in" : " =") + " ? ", conditions[k])
     );
     return sql;
   }
@@ -277,7 +277,7 @@ export default class Base<T> {
   public deleteByFieldRaw(
     connect: IConnectionPromise | IPoolPromise,
     conditions: IConditions,
-    limit = 1,
+    limit = 1
   ): Promise<number> {
     return this.query(this._deleteByField(conditions, limit), connect).then((res: any) => res && res.affectedRows);
   }
@@ -372,10 +372,10 @@ export default class Base<T> {
     connect: IConnectionPromise | IPoolPromise,
     conditions: IConditions,
     objects: IKVObject,
-    raw = false,
+    raw = false
   ): Promise<number> {
     return this.query(this._updateByField(conditions, objects, raw), connect).then(
-      (res: any) => res && res.affectedRows,
+      (res: any) => res && res.affectedRows
     );
   }
 
@@ -436,7 +436,7 @@ export default class Base<T> {
     connect: IConnectionPromise | IPoolPromise,
     primary: IPrimary,
     fields: string[],
-    num = 1,
+    num = 1
   ): Promise<number> {
     return this.query(this._incrFields(primary, fields, num), connect).then((res: any) => res && res.affectedRows);
   }
@@ -454,7 +454,7 @@ export default class Base<T> {
     limit = 999,
     offset = 0,
     order = this.order,
-    asc = true,
+    asc = true
   ) {
     removeUndefined(conditions);
     const sql = squel
@@ -474,7 +474,7 @@ export default class Base<T> {
     connect: IConnectionPromise | IPoolPromise,
     conditions = {},
     fields = this.fields,
-    ...args: any[],
+    ...args: any[]
   ): Promise<T[]> {
     if (args.length === 2 && typeof args[1] === "object") {
       return this.query(

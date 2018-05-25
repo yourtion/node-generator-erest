@@ -5,7 +5,7 @@
 import API from "erest";
 import * as pjson from "../package.json";
 
-import { IKVObject, IPageParams } from "./global";
+import { IKVObject, IPageParams, ILogger } from "./global";
 import { InternalError, InvalidParameter, MissingParameter } from "./global/gen/errors.gen";
 import { IPageResult } from "./models/base";
 
@@ -22,6 +22,7 @@ export interface IRequest extends Request {
   $params: IKVObject;
   $pages: IPageParams;
   $ip: string;
+  $log: ILogger;
 }
 
 const INFO = {
@@ -39,10 +40,15 @@ const GROUPS = {
 const apiService = new API<IRequest, IResponse>({
   info: INFO,
   groups: GROUPS,
+  forceGroup: true,
   path: require("path").resolve(__dirname, "routers"),
   missingParameterError: (msg: string) => new MissingParameter(msg),
   invalidParameterError: (msg: string) => new InvalidParameter(msg),
   internalError: (msg: string) => new InternalError(msg),
+  docs: {
+    wiki: "./",
+    home: true,
+  },
 });
 
 export default apiService;

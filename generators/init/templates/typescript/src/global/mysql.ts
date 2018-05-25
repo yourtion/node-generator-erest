@@ -26,7 +26,7 @@ export interface IQueryPromise {
 
 export interface IConnectionPromise extends PoolConnection {
   queryAsync: IQueryPromise;
-  debug?: (sql: any) => any;
+  debug?: (sql: any, ...info: any[]) => any;
   beginTransactionAsync(options?: QueryOptions): Promise<void>;
   commitAsync(options?: QueryOptions): Promise<void>;
   rollbackAsync(options?: QueryOptions): Promise<void>;

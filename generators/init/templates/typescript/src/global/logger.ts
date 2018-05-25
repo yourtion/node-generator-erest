@@ -8,7 +8,12 @@ import { createWriteStream } from "fs";
 import pino from "pino";
 import { Writable } from "stream";
 import { config } from "./base";
-// import * as connectLogger = './libs/connect-logger'
+import { IKVObject } from "erest/dist/lib/interfaces";
+
+// 修正在 watch 模式下 MaxListenersExceededWarning
+if (!config.ispro) {
+  process.stdout.setMaxListeners(Infinity);
+}
 
 export interface ILogger {
   trace(error: Error, ...params: any[]): void;
@@ -67,10 +72,18 @@ function _getLogger(name: string, level = defaultLevel) {
   const opt = {
     level,
     base: null,
+    prettyPrint: !config.ispro,
     serializers: {
       err: pino.stdSerializers.err,
-    },
+    } as IKVObject,
   };
+  if (name === "express") {
+    opt.serializers = {
+      err: pino.stdSerializers.err,
+      req: pino.stdSerializers.req,
+      res: pino.stdSerializers.res,
+    };
+  }
   return getPino(opt, name);
 }
 
@@ -78,8 +91,22 @@ export const systemLogger = _getLogger("system") as ILogger;
 export const expressLogger = _getLogger("express") as ILogger;
 export const mysqlLogger = _getLogger("mysql") as ILogger;
 
-export function getLogger(name: string): ILogger {
-  return (systemLogger as pino.Logger).child({ name }) as ILogger;
+export function getLogger(name: string, addtion: IKVObject = {}): ILogger {
+  return (systemLogger as pino.Logger).child({ ...addtion, name }) as ILogger;
+}
+
+export function expressMiddle(logger: ILogger, level: pino.Level = "trace") {
+  return (req: any, res: any, next?: any) => {
+    const start = Date.now();
+    res.on("finish", () => {
+      const time = Date.now() - start;
+      if (res.statusCode >= 300) { level = "info"; }
+      if (res.statusCode >= 400 || time > 1000) { level = "warn"; }
+      if (res.statusCode >= 500) { level = "error"; }
+      logger[level]("respone:", { route: req.originalUrl || req.url, code: res.statusCode, time });
+    });
+    if (next) { next(); }
+  };
 }
 
 export const logger = systemLogger;
