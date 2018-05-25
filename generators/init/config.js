@@ -9,6 +9,7 @@ const dependencies = [
   'mysql',
   'pino',
   'squel',
+  'uuid',
 ];
 
 const dependenciesTS = [
@@ -22,11 +23,14 @@ const dependenciesTS = [
   '@types/mysql',
   '@types/node',
   '@types/pino',
+  '@types/uuid',
+  '@types/debug',
+  '@types/supertest',
 ];
 
 const devDependencies = ['chai', 'debug', 'mocha', 'prettier', 'supertest', 'ts-node', 'tslint', 'typescript'];
 
-const devDependenciesTS = ['@types/chai', '@types/debug', '@types/mocha', '@types/prettier', '@types/supertest'];
+const devDependenciesTS = ['@types/chai', '@types/mocha', '@types/prettier'];
 
 exports.getTSDeps = () => {
   return [].concat(dependencies, dependenciesTS);
