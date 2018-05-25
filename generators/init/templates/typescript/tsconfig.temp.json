@@ -9,9 +9,9 @@
     "moduleResolution": "node",
     "outDir": "dist",
     "pretty": true,
-    "noUnusedLocals": true,
+    "noUnusedLocals": true
   },
   "include": [
     "src/**/*"
-  ],
+  ]
 }

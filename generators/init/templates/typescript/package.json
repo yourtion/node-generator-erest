@@ -1,14 +1,14 @@
 {
   "main": "src/index.ts",
   "scripts": {
-    "install": "npm i --registry=https://registry.npm.taobao.org",
+    "tnpm": "npm i --registry=https://registry.npm.taobao.org",
     "lint": "tslint -p . --fix",
     "start": "ts-node src/index.ts",
-    "dev": "nodemon -e ts -x ts-node src/index.ts | pino -l",
-    "test": "export NODE_ENV=test && mocha -r ts-node/register test/api/test-*.ts --exit | pino -l",
+    "dev": "nodemon -e ts -x ts-node src/index.ts",
+    "test": "export NODE_ENV=test && mocha -r ts-node/register test/api/test-*.ts --exit",
     "prettier": "prettier --write {src,scripts,test}/**/*.ts && npm run lint",
     "code": "cd scripts && ts-node gencode.ts -P .",
-    "deploy": "git pull && npm run install -- --production && pm2 startOrGracefulReload app.json",
+    "deploy": "git pull && npm run tnpm -- --production && tsc && pm2 startOrGracefulReload app.json",
     "logs": "tail -F ./logs/*.log | pino -l"
   },
   "engine-strict": {
