@@ -5,15 +5,10 @@
 
 /* tslint:disable: no-console */
 
-import Debug from "debug";
 import path from "path";
 
-const debug = Debug("erest:gencode:");
-
 const FILE_PATH = path.resolve(__dirname, "../src/global/gen");
-
-import apiService from "../src/api";
-import { prettierSaveFile, utils } from "./utils";
+import { prettierSaveFile } from "./utils";
 
 import config from "../src/global/base/config";
 import {genConfigFile, genErrorFile, genModels, genTypesFile} from "./generators";

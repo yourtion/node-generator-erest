@@ -8,10 +8,6 @@ import { firstUpperCase } from "../../src/global/base/utils";
 
 const result = [];
 
-function toInterfaceKey(obj, key) {
-  return `  ${key} : ${typeof obj[key]}`;
-}
-
 function toInterface(obj, name) {
   const res = [];
   res.push(`export interface I${firstUpperCase(name)} {`);
