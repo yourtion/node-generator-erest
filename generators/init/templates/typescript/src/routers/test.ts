@@ -1,9 +1,8 @@
 import apiService from "../api";
-const api = apiService.api;
+const api = apiService.group("Base");
 
 api
   .get("/index")
-  .group("Base")
   .title("测试Index")
   .register((req, res) => {
     res.success("Hello, API Framework Index");
