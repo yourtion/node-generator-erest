@@ -17,6 +17,22 @@ function underscore2camelCase(str) {
 }
 exports.underscore2camelCase = underscore2camelCase;
 
+/**
+ * 获取短名字
+ */
+function shortName(str) {
+  return toSnakeCase(str)
+    .replace(/_/g, '-')
+    .replace(/--/g, '-')
+    .split('-')
+    .map(s => s[0])
+    .join('');
+}
+exports.shortName = shortName;
+
+/**
+ * 蛇形命名
+ */
 function toSnakeCase(str) {
   return str
     .replace(/(?:^|\.?)([A-Z])/g, (x, y) => {
@@ -26,6 +42,9 @@ function toSnakeCase(str) {
 }
 exports.toSnakeCase = toSnakeCase;
 
+/**
+ * 随机字符串
+ */
 function randomStr() {
   return Math.random()
     .toString(36)

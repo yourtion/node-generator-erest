@@ -1,4 +1,5 @@
 const fs = require('fs');
+const utils = require('../../utils/utils');
 
 function getGitOrigin(gitConfigFile) {
   try {
@@ -33,7 +34,7 @@ exports.prompts = function prompts() {
     {
       name: 'shortName',
       message: 'project short name:',
-      default: this.appname,
+      default: this.appname && utils.shortName(this.appname),
     },
     {
       name: 'version',
@@ -74,9 +75,9 @@ exports.prompts = function prompts() {
     {
       type: 'list',
       name: 'target',
-      default: 'es6',
+      default: 'esnext',
       message: 'typescript target:',
-      when: (res) => {
+      when: res => {
         return res.language === 'TypeScript';
       },
       choices: ['es5', 'es6', 'esnext'],
@@ -84,7 +85,7 @@ exports.prompts = function prompts() {
     {
       type: 'list',
       name: 'license',
-      default: 'MIT',
+      default: 'ISC',
       message: 'license:',
       choices: ['ISC', 'MIT', 'Apache-2.0', 'AGPL-3.0'],
     },
