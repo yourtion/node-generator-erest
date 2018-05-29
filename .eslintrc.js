@@ -3,5 +3,6 @@ module.exports = {
   rules: {
     'template-curly-spacing': 'off',
     'array-bracket-spacing': 'off',
+    'valid-jsdoc': 'off',
   }
 };
