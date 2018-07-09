@@ -1,6 +1,6 @@
 import Debug from "debug";
 
-import * as u from "./global/base/utils";
+import * as u from "../src/global/base/utils";
 
 export const utils = u;
 

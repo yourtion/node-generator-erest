@@ -3,8 +3,8 @@
  * @author Yourtion Guo <yourtion@gmail.com>
  */
 
-import config from "../global/base/config";
-import { firstUpperCase } from "../global/base/utils";
+import config from "../../src/global/base/config";
+import { firstUpperCase } from "../../src/global/base/utils";
 
 const result = [];
 

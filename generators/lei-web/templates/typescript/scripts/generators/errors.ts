@@ -3,8 +3,8 @@
  * @author Yourtion Guo <yourtion@gmail.com>
  */
 
-import apiService from "../api";
-import { firstUpperCase, underscore2camelCase } from "../global/base/utils";
+import apiService from "../../src/api";
+import { firstUpperCase, underscore2camelCase } from "../../src/global/base/utils";
 
 function genErrorString(err) {
   const name = firstUpperCase(underscore2camelCase(err.name));

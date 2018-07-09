@@ -10,7 +10,7 @@ import path from "path";
 const FILE_PATH = path.resolve(__dirname, "../src/global/gen");
 import { prettierSaveFile } from "./utils";
 
-import config from "./global/base/config";
+import config from "../src/global/base/config";
 import {genConfigFile, genErrorFile, genModels, genTypesFile} from "./generators";
 
 function getModelsPath(name: string) {

@@ -1,4 +1,4 @@
-import apiService from "../api";
+import apiService from "../../src/api";
 
 function genTypeString(type) {
   return ` /** ${type.description} */
