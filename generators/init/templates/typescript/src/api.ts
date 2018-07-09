@@ -3,7 +3,7 @@
  */
 
 import API from "erest";
-import * as pjson from "../package.json";
+const pjson = require("../package.json");
 
 import { IKVObject, IPageParams, ILogger } from "./global";
 import { InternalError, InvalidParameter, MissingParameter } from "./global/gen/errors.gen";

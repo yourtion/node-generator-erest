@@ -69,7 +69,7 @@ exports.prompts = function prompts() {
       name: 'keywords',
       message: 'keywords:',
       filter: words => {
-        return words && words.split(/\s+|,/g);
+        return words ? words.split(/\s+|,/g) : [''];
       },
     },
     {

@@ -1,15 +1,16 @@
 /**
  * @file 入口文件
+ * @author Yourtion Guo <yourtion@gmail.com>
  */
 
 import http from "http";
-import pjson from "../package.json";
+
 import app from "./app";
 import { config, mysql, redis } from "./global";
+const pjson = require("../package.json");
+const projectName = pjson.name;
 
 const server = http.createServer(app);
-
-const projectName = (pjson as any).name;
 
 const PORT = config.port || process.env.PORT || 3001;
 const HOST = config.host || process.env.HOST || "127.0.0.1";

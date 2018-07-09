@@ -17,7 +17,8 @@ const logger = getLogger("app");
 import apiService, { IRequest, IResponse } from "./api";
 
 // 静态文件
-app.use(express.static("public"));
+app.use("/h5", express.static("public/h5"));
+app.use("/admin", express.static("public/admin"));
 app.use("/api", router);
 
 // 获取IP

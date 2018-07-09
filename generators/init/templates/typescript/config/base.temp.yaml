@@ -1,4 +1,4 @@
-tablePrefix: ""
+tablePrefix: "<%= projectNameShort %>_"
 cookieMaxAge: 3600000 * 24 * 10 # 默认 cookies 时间
 sessionSecret: "<%= sessionSecret %>" # session 密钥
 sessionPrefix: "<%= projectNameShort %>:" # session 前缀

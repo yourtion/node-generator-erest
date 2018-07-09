@@ -14,7 +14,8 @@ import config from "../src/global/base/config";
 import {genConfigFile, genErrorFile, genModels, genTypesFile} from "./generators";
 
 function getModelsPath(name: string) {
-  return path.resolve(__dirname, "../src/models/", name + ".ts");
+  const suffix = name === "index" ? ".ts" : ".m.ts"
+  return path.resolve(__dirname, "../src/models/", name + suffix);
 }
 
 async function main() {

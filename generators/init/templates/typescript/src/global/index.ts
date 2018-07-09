@@ -15,5 +15,3 @@ export * from "./gen/models.gen";
 import sequelLib from "squel";
 export const squel = sequelLib.useFlavour("mysql");
 
-import expressCoroutine from "express-coroutine";
-export const co = expressCoroutine.coroutine;

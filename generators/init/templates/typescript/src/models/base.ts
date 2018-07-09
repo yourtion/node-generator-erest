@@ -23,6 +23,7 @@ export interface IJoinTable {
   alias: string;
   condition: string;
   fields?: string[];
+  where?: IKVObject;
 }
 
 export interface IJoinOptions {
@@ -32,6 +33,12 @@ export interface IJoinOptions {
   offset: number;
   order?: string;
   asc?: boolean;
+}
+
+export interface IJoinPageOptions {
+  conditions?: IKVObject;
+  fields?: string[];
+  page: IPageParams;
 }
 
 /**
@@ -168,6 +175,10 @@ export default class Base<T> {
     return connection.queryAsync(text, values).catch(err => errorHandler(err));
   }
 
+  public truncateTable() {
+    return this.query("TRUNCATE TABLE `" + this.table + "`;");
+  }
+
   public _count(conditions: IConditions = {}) {
     const sql = squel
       .select()
@@ -203,7 +214,7 @@ export default class Base<T> {
 
   public getByPrimaryRaw(
     connect: IConnectionPromise | IPoolPromise,
-    primary: string,
+    primary: IPrimary,
     fields = this.fields
   ): Promise<T> {
     return this.query(this._getByPrimary(primary, fields), connect).then((res: T[]) => res && res[0]);
@@ -212,7 +223,7 @@ export default class Base<T> {
   /**
    * 根据主键获取数据
    */
-  public getByPrimary(primary: string, fields = this.fields) {
+  public getByPrimary(primary: IPrimary, fields = this.fields) {
     return this.getByPrimaryRaw(this.connect, primary, fields);
   }
 
@@ -360,7 +371,11 @@ export default class Base<T> {
     });
     Object.keys(objects).forEach(k => {
       if (k.indexOf("$") === 0) {
-        sql.set(objects[k]);
+        if (Array.isArray(objects[k])) {
+          sql.set(objects[k][0], ...objects[k].slice(1));
+        } else {
+          sql.set(objects[k]);
+        }
       } else {
         sql.set(`${k} = ?`, objects[k]);
       }
@@ -395,7 +410,7 @@ export default class Base<T> {
     }
     const condition: IKVObject = {};
     condition[this.primaryKey] = primary;
-    return this.updateByField(condition, objects, raw).then((res: any) => res && res.affectedRows);
+    return this.updateByField(condition, objects, raw);
   }
 
   public _createOrUpdate(objects: IKVObject, update = Object.keys(objects)) {
@@ -476,10 +491,10 @@ export default class Base<T> {
     fields = this.fields,
     ...args: any[]
   ): Promise<T[]> {
-    if (args.length === 2 && typeof args[1] === "object") {
+    if (args.length === 1 && typeof args[0] === "object") {
       return this.query(
         this._list(conditions, fields, args[0].limit, args[0].offset, args[0].order, args[0].asc),
-        connect,
+        connect
       );
     }
     return this.query(this._list(conditions, fields, ...args), connect);
@@ -498,7 +513,7 @@ export default class Base<T> {
     limit?: number,
     offset?: number,
     order?: string,
-    asc?: boolean,
+    asc?: boolean
   ): Promise<T[]>;
   public list(conditions = {}, fields = this.fields, ...args: any[]) {
     return this.listRaw(this.connect, conditions, fields, ...args);
@@ -511,7 +526,7 @@ export default class Base<T> {
     limit = 10,
     offset = 0,
     order = this.order,
-    asc = true,
+    asc = true
   ) {
     if (!keyword || search.length < 1) {
       throw new Error("`keyword` | `search` 不能为空");
@@ -547,12 +562,12 @@ export default class Base<T> {
     limit?: number,
     offset?: number,
     order?: string,
-    asc?: boolean,
+    asc?: boolean
   ): Promise<T[]>;
   public search(keyword: string, search: string[], fields = this.fields, ...args: any[]): Promise<T[]> {
     if (args.length === 1 && typeof args[0] === "object") {
       return this.query(
-        this._search(keyword, search, fields, args[0].limit, args[0].offset, args[0].order, args[0].asc),
+        this._search(keyword, search, fields, args[0].limit, args[0].offset, args[0].order, args[0].asc)
       );
     }
     return this.query(this._search(keyword, search, fields, ...args));
@@ -567,7 +582,7 @@ export default class Base<T> {
     limit?: number,
     offset?: number,
     order?: string,
-    asc?: boolean,
+    asc?: boolean
   ): Promise<IPageResult<T>>;
   /**
    * 根据条件获取分页内容（比列表多出总数计算）
@@ -661,7 +676,7 @@ export default class Base<T> {
           .clone()
           .field(`count(${this.primaryKey})`)
           .where("date(created_at) = curdate()"),
-        "today",
+        "today"
       );
     const listSql = table
       .clone()
@@ -675,38 +690,59 @@ export default class Base<T> {
           .clone()
           .field(`count(${this.primaryKey})`)
           .where("created_at <= DATE_ADD(`day`, INTERVAL 1 DAY) "),
-        "day_total",
+        "day_total"
       )
       .group("date(created_at)");
     const statusExec = this.query(statusSql);
     const listExec = this.query(listSql);
     return Promise.all([statusExec, listExec]).then(
-      ([status, list]) => list && status && status[0] && { status: status[0], list },
+      ([status, list]) => list && status && status[0] && { status: status[0], list }
     );
   }
 
-  public _join(alias: string, options: IJoinOptions, ...tables: IJoinTable[]) {
-    const sql = squel.select(SELETE_OPT).from(this.table, alias);
+  public _join(alias: string, options: IJoinOptions, isCount: boolean, ...tables: IJoinTable[]) {
+    const sql = squel.select().from(this.table, alias);
     for (const table of tables) {
       sql.left_join(table.table, table.alias, table.condition);
-      if (table.fields) {
+      if (!isCount && table.fields) {
         table.fields.forEach((f: any) => sql.field(`${table.alias}.${f}`));
       }
+      if (table.where) {
+        removeUndefined(table.where);
+        _parseWhere(sql, table.where, table.alias);
+      }
     }
-    if (options.fields) {
+    if (!isCount && options.fields) {
       options.fields.forEach((f: any) => sql.field(`${alias}.${f}`));
     }
     if (options.conditions) {
       removeUndefined(options.conditions);
       _parseWhere(sql, options.conditions, alias);
     }
-    if (options.order) {
+    if (!isCount && options.order) {
       sql.order(`${alias}.${options.order}`, options.asc);
     }
-    sql.offset(options.offset).limit(options.limit);
+    if (!isCount && options.limit > 0) {
+      sql.offset(options.offset).limit(options.limit);
+    } else if (isCount) {
+      sql.field("COUNT(*)", "c");
+    }
     return sql;
   }
   public join(alias: string, options: IJoinOptions, ...tables: IJoinTable[]) {
-    return this.query(this._join(alias, options, ...tables));
+    return this.query(this._join(alias, options, false, ...tables));
+  }
+  public joinPage(alias: string, options: IJoinPageOptions, ...tables: IJoinTable[]) {
+    const opt = {
+      conditions: options.conditions,
+      fields: options.fields,
+      limit: options.page.limit,
+      offset: options.page.offset,
+      order: options.page.order,
+      asc: options.page.asc,
+    };
+    const listSql = this.query(this._join(alias, opt, false, ...tables));
+    const countSql = this.query(this._join(alias, opt, true, ...tables)).then((res: any) => res && res[0] && res[0].c);
+    return Promise.all([listSql, countSql]).then(([list, count = 0]) => list && { count, list });
   }
 }

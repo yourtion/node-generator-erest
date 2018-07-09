@@ -7,7 +7,6 @@ import { createHash, randomBytes } from "crypto";
 import { exists, readFile, writeFile } from "fs";
 import { format, parse } from "url";
 import { promisify } from "util";
-import { IKVObject } from "./index";
 
 const NUMBER = "0123456789";
 const NUMBERL = NUMBER.length;
@@ -75,7 +74,7 @@ export function unixTime(unixtime: number) {
  * @return {String}
  */
 export function dateString(date = new Date()) {
-  return date.getFullYear() + leftPad(date.getMonth() + 1, 2) + leftPad(date.getDate(), 2);
+  return getDateString("", date);
 }
 
 /**
@@ -139,10 +138,24 @@ export function genTimestamp(after = 0) {
 }
 
 /**
- * 获取时间字符串
+ * 获取日期字符串
  */
 export function getDateString(pad = "", time = new Date()) {
   return `${time.getFullYear()}${pad}${leftPad(time.getMonth() + 1, 2)}${pad}${leftPad(time.getDate(), 2)}`;
+}
+
+/**
+ * 获取时间字符串
+ */
+export function getTimeString(pad = "", time = new Date()) {
+  return `${time.getHours()}${pad}${leftPad(time.getMinutes(), 2)}${pad}${leftPad(time.getSeconds(), 2)}`;
+}
+
+/**
+ * 获取日期时间字符串
+ */
+export function getDateTimeString(pad = "", time = new Date()) {
+  return `${getDateString("-", time)} ${getTimeString(":", time)}`;
 }
 
 /**
@@ -180,7 +193,7 @@ export function removeUndefined(object: any) {
  * @param {String} prefix 合并的前缀
  * @returns {Array}
  */
-export function mergeInfo(array: any[], object: IKVObject, k1: string, k2: string, prefix: string) {
+export function mergeInfo(array: any[], object: Record<string, any>, k1: string, k2: string, prefix: string) {
   array.map(a => {
     if (a[k1] === object[a[k1]][k2]) {
       const obj = object[a[k1]];
@@ -252,7 +265,7 @@ export function underscore2camelCase(str: string) {
  * @param {Object} data 数据
  * @param {Array} arr 数据key
  */
-export function checkParams(data: IKVObject, arr: any[]) {
+export function checkParams(data: Record<string, any>, arr: any[]) {
   for (const val of arr) {
     if (data[val] === undefined) {
       return `"${val}" is required`;
@@ -263,10 +276,10 @@ export function checkParams(data: IKVObject, arr: any[]) {
 
 /**
  * 参数提取
- * @param {IKVObject} data 数据
+ * @param {Record<string, any>} data 数据
  * @param {Array} arr 数据key
  */
-export function filterParams(data: IKVObject, arr: any[]) {
+export function filterParams(data: Record<string, any>, arr: any[]) {
   const obj: any = {};
   arr.forEach(key => {
     if (data[key] !== undefined) {
@@ -282,9 +295,9 @@ export function filterParams(data: IKVObject, arr: any[]) {
  * render("{{name}}很厉害，才{{age}}岁", { name: "yourtion", age: "15" })
  *
  * @param {String} template 模版字符串
- * @param {IKVObject} context 替换对象
+ * @param {Record<string, any>} context 替换对象
  */
-export function render(template: string, context: IKVObject) {
+export function render(template: string, context: Record<string, any>) {
   return template.replace(/\{\{(.*?)\}\}/g, (match, key) => context[key]);
 }
 

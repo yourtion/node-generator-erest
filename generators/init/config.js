@@ -1,22 +1,18 @@
 const dependencies = [
-  'connect-redis',
   'erest',
   'express',
   'express-coroutine',
-  'express-session',
   'ioredis',
   'lodash',
   'mysql',
   'pino',
   'squel',
   'uuid',
+  'js-yaml',
 ];
 
 const dependenciesTS = [
-  'js-yaml',
-  '@types/connect-redis',
   '@types/express',
-  '@types/express-session',
   '@types/ioredis',
   '@types/js-yaml',
   '@types/lodash',
@@ -25,10 +21,9 @@ const dependenciesTS = [
   '@types/pino',
   '@types/uuid',
   '@types/debug',
-  '@types/supertest',
 ];
 
-const devDependencies = ['chai', 'debug', 'mocha', 'prettier', 'supertest', 'ts-node', 'tslint', 'typescript'];
+const devDependencies = ['chai', 'debug', 'mocha', 'prettier', 'supertest', 'ts-node', 'typescript'];
 
 const devDependenciesTS = ['@types/chai', '@types/mocha', '@types/prettier'];
 

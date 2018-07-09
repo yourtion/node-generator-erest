@@ -14,11 +14,10 @@ const debug = Debug("erest:test:");
 const FILE_PATH = path.resolve(__dirname, "../test/api/");
 
 require("../src/app");
-import { IKVObject } from "erest/dist/lib/interfaces";
-import apiService from "../src/api";
+import apiService from "./api";
 import { prettierSaveFile } from "./utils";
 
-function genIt(api: string, method: string, input: IKVObject, desc: string) {
+function genIt(api: string, method: string, input: Record<string, any>, desc: string) {
   return `
   it('${desc}', async () => {
     const ret = await agent.${method}('/api${api}')
@@ -49,7 +48,7 @@ ${lines.join("\n")}
 function genTest(name: string, overwrite: boolean) {
   const schemas = apiService.api.$schemas;
   debug(name);
-  const data: IKVObject[] = [];
+  const data: Record<string, any>[] = [];
   for (const s of schemas.values()) {
     if (s && s.options && s.options.group && s.options.group.toLowerCase() === name) {
       data.push(s);
@@ -61,11 +60,11 @@ function genTest(name: string, overwrite: boolean) {
   const res: string[] = [];
   data.forEach(schema => {
     const opt = schema.options;
-    const input: IKVObject = {};
+    const input: Record<string, any> = {};
     [...Object.keys(opt.query), ...Object.keys(opt.body)].forEach(key => {
       input[key] = "share." + key;
     });
-    res.push(genIt(opt.path, opt.method, input, opt.title));
+    res.push(genIt(schema.key.split("_")[1], opt.method, input, opt.title));
   });
   const str = genFile(name, res);
   const filePath = `${FILE_PATH}/test-${name}.ts`;
@@ -75,7 +74,7 @@ function genTest(name: string, overwrite: boolean) {
 debug(process.argv);
 
 if (process.argv.length > 2) {
-  genTest(process.argv[2], !!process.argv[3])
+  genTest(process.argv[2].toLowerCase(), !!process.argv[3])
     .then(() => {
       console.log(`创建test ${process.argv[2]}成功`);
       process.exit(0);

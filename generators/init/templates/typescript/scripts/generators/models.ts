@@ -6,10 +6,9 @@
 /* tslint:disable: no-console */
 
 import Debug from "debug";
-import { IKVObject } from "erest/dist/lib/interfaces";
 import util from "util";
 import { mysql, TYPES } from "../../src/global";
-import { firstUpperCase, underscore2camelCase } from "../../src/global/base/utils";
+import { firstUpperCase, underscore2camelCase } from "../global/base/utils";
 
 const debug = Debug("erest:create_model:");
 
@@ -28,6 +27,9 @@ function convertFiled(field: string, nullable: boolean) {
   }
   if (field.indexOf("int") > -1) {
     return nullable ? TYPES.NullableInteger : TYPES.Integer;
+  }
+  if (field.indexOf("decimal") > -1) {
+    return TYPES.Float;
   }
   if (field === "timestamp") {
     return nullable ? TYPES.NullableInteger : TYPES.Integer;
@@ -70,7 +72,7 @@ function enumToArray(e: string) {
 }
 
 function convertTable(table: any) {
-  const schema: IKVObject = {};
+  const schema: Record<string, any> = {};
   const fields: string[] = [];
   const interfaces = [];
   let key;
@@ -110,14 +112,14 @@ function genFile(
   tableName: string,
   tableCommet: string,
   schema: any,
-  fields: IKVObject,
+  fields: Record<string, any>,
   interfaces: string[],
-  key: string,
+  key: string
 ) {
   const tableCamelCase = underscore2camelCase(tableName);
   const tableString = firstUpperCase(tableCamelCase);
   // 生成 Index
-  result.indexs.push(`export * from "./${tableName}";`);
+  result.indexs.push(`export * from "./${tableName}.m";`);
 
   // 生成模型
   result.modelNames.push(`"${tableCamelCase}Model"`);

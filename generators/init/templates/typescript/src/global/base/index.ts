@@ -3,10 +3,6 @@
  * @author Yourtion Guo <yourtion@gmail.com>
  */
 
-export interface IKVObject<T= any> {
-  [key: string]: T;
-}
-
 export interface IPageParams {
   page: number;
   limit: number;
