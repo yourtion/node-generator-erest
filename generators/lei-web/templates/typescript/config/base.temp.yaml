@@ -1,0 +1,10 @@
+tablePrefix: "<%= projectNameShort %>_"
+cookieMaxAge: 3600000 * 24 * 10 # 默认 cookies 时间
+sessionSecret: "<%= sessionSecret %>" # session 密钥
+sessionPrefix: "<%= projectNameShort %>:" # session 前缀
+saltRounds: 10 # 密码加盐长度
+loggerDebug: true
+redisKey: "<%= projectNameShort %>"
+message:
+  success: "操作成功"
+  error: "操作失败"

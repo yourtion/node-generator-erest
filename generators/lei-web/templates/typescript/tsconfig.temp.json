@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "declaration": false,
+    "target": "<%= target %>",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "outDir": "dist",
+    "pretty": true,
+    "noUnusedLocals": true
+  },
+  "include": [
+    "src/**/*"
+  ]
+}
