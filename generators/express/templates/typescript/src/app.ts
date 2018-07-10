@@ -66,7 +66,7 @@ router.use(express.urlencoded({ extended: true }));
 });
 
 require("./routers");
-apiService.bindGroupToApp(router, express);
+apiService.bindRouterToApp(router, express, apiService.checkerExpress);
 
 (router as any).use((err: any, req: IRequest, res: IResponse, next: NextFunction) => {
   if (config.ispro && !err.show) {

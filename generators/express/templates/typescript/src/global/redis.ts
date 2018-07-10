@@ -13,10 +13,12 @@ const logger = getLogger("redis");
   logger.error(error);
 });
 
-export const redis = new Redis(config.redis);
+export const redis = config.redis && new Redis(config.redis);
 
-redis.on("error", err => logger.error(err));
+if(redis) {
+  redis.on("error", err => logger.error(err));
 
-redis.on("connect", () => {
-  logger.debug("Redis connected");
-});
+  redis.on("connect", () => {
+    logger.debug("Redis connected");
+  });
+}

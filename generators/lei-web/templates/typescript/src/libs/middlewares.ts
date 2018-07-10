@@ -4,7 +4,7 @@
  */
 
 import { Context } from "../web";
-import { logger, errors } from "../global";
+import { logger } from "../global";
 
 export function parsePages(ctx: Context) {
   const param = ctx.request.$params || ctx.request.query;

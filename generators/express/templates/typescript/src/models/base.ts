@@ -4,7 +4,7 @@
  */
 import { Delete, Insert, MysqlInsert, QueryBuilder, Select, Update } from "squel";
 import { config, errors, IConnectionPromise, mysql, mysqlLogger, squel, utils } from "../global";
-import { IKVObject, IPageParams, IPoolPromise } from "../global";
+import { IPageParams, IPoolPromise } from "../global";
 
 export { Delete, Insert, MysqlInsert, Select, Update, IPoolPromise };
 
@@ -15,7 +15,7 @@ export interface IPageResult<T> {
   list: T[];
 }
 
-export type IConditions = IKVObject<number | string | string[]>;
+export type IConditions = Record<string, number | string | string[]>;
 export type IPrimary = string | number;
 
 export interface IJoinTable {
@@ -23,11 +23,11 @@ export interface IJoinTable {
   alias: string;
   condition: string;
   fields?: string[];
-  where?: IKVObject;
+  where?: Record<string, any>;
 }
 
 export interface IJoinOptions {
-  conditions?: IKVObject;
+  conditions?: Record<string, any>;
   fields?: string[];
   limit: number;
   offset: number;
@@ -36,7 +36,7 @@ export interface IJoinOptions {
 }
 
 export interface IJoinPageOptions {
-  conditions?: IKVObject;
+  conditions?: Record<string, any>;
   fields?: string[];
   page: IPageParams;
 }
@@ -47,7 +47,7 @@ export interface IJoinPageOptions {
  * @param {Object} object
  * @returns {Object}
  */
-function removeUndefined(object: IKVObject) {
+function removeUndefined(object: Record<string, any>) {
   Object.keys(object).forEach(key => object[key] === undefined && delete object[key]);
   if (Object.keys.length === 0) {
     throw new errors.DatabaseError("Object is empty");
@@ -61,7 +61,7 @@ function removeUndefined(object: IKVObject) {
  * @param {Object} sql Squel 对象
  * @param {Object} conditions 查询条件
  */
-function _parseWhere(sql: Select, conditions: IKVObject, alias?: string) {
+function _parseWhere(sql: Select, conditions: Record<string, any>, alias?: string) {
   Object.keys(conditions).forEach(k => {
     if (k.indexOf("$") === 0) {
       // 以 $ 开头直接解析
@@ -227,7 +227,7 @@ export default class Base<T> {
     return this.getByPrimaryRaw(this.connect, primary, fields);
   }
 
-  public _getOneByField(object: IKVObject = {}, fields = this.fields) {
+  public _getOneByField(object: Record<string, any> = {}, fields = this.fields) {
     const sql = squel
       .select(SELETE_OPT)
       .from(this.table)
@@ -239,7 +239,7 @@ export default class Base<T> {
 
   public getOneByFieldRaw(
     connect: IConnectionPromise | IPoolPromise,
-    object: IKVObject = {},
+    object: Record<string, any> = {},
     fields = this.fields
   ): Promise<T> {
     return this.query(this._getOneByField(object, fields), connect).then((res: T[]) => res && res[0]);
@@ -248,7 +248,7 @@ export default class Base<T> {
   /**
    * 根据查询条件获取一条记录
    */
-  public getOneByField(object: IKVObject = {}, fields = this.fields) {
+  public getOneByField(object: Record<string, any> = {}, fields = this.fields) {
     return this.getOneByFieldRaw(this.connect, object, fields);
   }
 
@@ -317,7 +317,7 @@ export default class Base<T> {
     return this.list(conditions, fields, 999);
   }
 
-  public _insert(object: IKVObject = {}) {
+  public _insert(object: Record<string, any> = {}) {
     removeUndefined(object);
     return squel
       .insert()
@@ -325,18 +325,18 @@ export default class Base<T> {
       .setFields(object);
   }
 
-  public insertRaw(connect: IConnectionPromise | IPoolPromise, object: IKVObject = {}) {
+  public insertRaw(connect: IConnectionPromise | IPoolPromise, object: Record<string, any> = {}) {
     return this.query(this._insert(object), connect);
   }
 
   /**
    * 插入一条数据
    */
-  public insert(object: IKVObject = {}) {
+  public insert(object: Record<string, any> = {}) {
     return this.insertRaw(this.connect, object);
   }
 
-  public _batchInsert(array: IKVObject[]) {
+  public _batchInsert(array: Record<string, any>[]) {
     array.forEach(o => removeUndefined(o));
     return squel
       .insert()
@@ -347,11 +347,11 @@ export default class Base<T> {
   /**
    * 批量插入数据
    */
-  public batchInsert(array: IKVObject[]) {
+  public batchInsert(array: Record<string, any>[]) {
     return this.query(this._batchInsert(array));
   }
 
-  public _updateByField(conditions: IConditions, objects: IKVObject, raw = false) {
+  public _updateByField(conditions: IConditions, objects: Record<string, any>, raw = false) {
     if (!conditions || Object.keys(conditions).length < 1) {
       throw new Error("`key` 不能为空");
     }
@@ -386,7 +386,7 @@ export default class Base<T> {
   public updateByFieldRaw(
     connect: IConnectionPromise | IPoolPromise,
     conditions: IConditions,
-    objects: IKVObject,
+    objects: Record<string, any>,
     raw = false
   ): Promise<number> {
     return this.query(this._updateByField(conditions, objects, raw), connect).then(
@@ -397,23 +397,23 @@ export default class Base<T> {
   /**
    * 根据查询条件更新记录
    */
-  public updateByField(conditions: IConditions, objects: IKVObject, raw = false): Promise<number> {
+  public updateByField(conditions: IConditions, objects: Record<string, any>, raw = false): Promise<number> {
     return this.updateByFieldRaw(this.connect, conditions, objects, raw);
   }
 
   /**
    * 根据主键更新记录
    */
-  public updateByPrimary(primary: IPrimary, objects: IKVObject, raw = false): Promise<number> {
+  public updateByPrimary(primary: IPrimary, objects: Record<string, any>, raw = false): Promise<number> {
     if (primary === undefined) {
       throw new Error("`primary` 不能为空");
     }
-    const condition: IKVObject = {};
+    const condition: Record<string, any> = {};
     condition[this.primaryKey] = primary;
     return this.updateByField(condition, objects, raw);
   }
 
-  public _createOrUpdate(objects: IKVObject, update = Object.keys(objects)) {
+  public _createOrUpdate(objects: Record<string, any>, update = Object.keys(objects)) {
     removeUndefined(objects);
     const sql = squel.insert().into(this.table);
     sql.setFields(objects);
@@ -430,7 +430,7 @@ export default class Base<T> {
   /**
    * 创建一条记录，如果存在就更新
    */
-  public createOrUpdate(objects: IKVObject, update = Object.keys(objects)) {
+  public createOrUpdate(objects: Record<string, any>, update = Object.keys(objects)) {
     return this.query(this._createOrUpdate(objects, update));
   }
 

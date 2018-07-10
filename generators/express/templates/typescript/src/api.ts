@@ -5,11 +5,11 @@
 import API from "erest";
 const pjson = require("../package.json");
 
-import { IKVObject, IPageParams, ILogger } from "./global";
+import { IPageParams, ILogger } from "./global";
 import { InternalError, InvalidParameter, MissingParameter } from "./global/gen/errors.gen";
 import { IPageResult } from "./models/base";
 
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 
 export interface IResponse extends Response {
   success: (data: any) => void;
@@ -19,7 +19,7 @@ export interface IResponse extends Response {
 }
 
 export interface IRequest extends Request {
-  $params: IKVObject;
+  $params: Record<string, any>;
   $pages: IPageParams;
   $ip: string;
   $log: ILogger;
@@ -37,7 +37,10 @@ const GROUPS = {
   Base: "基础",
 };
 
-const apiService = new API<IRequest, IResponse>({
+
+export type HANDLER = (req: IRequest, res: IResponse, next?: NextFunction) => void;
+
+const apiService = new API<HANDLER>({
   info: INFO,
   groups: GROUPS,
   forceGroup: true,

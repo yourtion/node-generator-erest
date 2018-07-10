@@ -40,9 +40,10 @@ export interface IPoolPromise extends Pool {
   releaseAsync(options?: QueryOptions): Promise<void>;
 }
 
-export const mysql = mysqlLib.createPool(config.mysql) as IPoolPromise;
+export const mysql = config.mysql && mysqlLib.createPool(config.mysql) as IPoolPromise;
 
-mysql
+if(mysql) {
+  mysql
   .getConnectionAsync()
   .then((connection: IConnectionPromise) => {
     mysqlLogger.debug("MySQL connected");
@@ -55,3 +56,4 @@ mysql
       mysqlLogger.error(err);
     }
   });
+}
