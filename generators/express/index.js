@@ -24,7 +24,7 @@ module.exports = class extends Generator {
   }
 
   writing() {
-    this.fs.copy(this.templatePath('.gitignore'), this.destinationPath('.gitignore'));
+    this.fs.copy(this.templatePath('gitignore'), this.destinationPath('.gitignore'));
     const packageInfo = this.fs.readJSON(this.templatePath(this.lang + '/package.json'));
     this.fs.extendJSON(this.destinationPath('package.json'), genPackage(packageInfo, this.prop));
     if (this.isTS) {
