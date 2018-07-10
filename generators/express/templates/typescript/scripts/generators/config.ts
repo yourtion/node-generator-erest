@@ -17,10 +17,20 @@ function toInterface(obj, name) {
   for (const k in obj) {
     if (typeof obj[k] === "object") {
       if (Array.isArray(obj[k])) {
-        res.push(`  ${k} : ${typeof obj[k][0]}[];`);
+        console.log(name);
+        if (name === "config") {
+          res.push(`  ${k}: I${firstUpperCase(k)}[];`);
+          toInterface(obj[k][0], k);
+        } else {
+          res.push(`  ${k} : ${typeof obj[k][0]}[];`);
+        }
       } else {
-        res.push(`  ${k}: I${firstUpperCase(k)};`);
-        toInterface(obj[k], k);
+        if (name === "config") {
+          res.push(`  ${k}: I${firstUpperCase(k)};`);
+          toInterface(obj[k], k);
+        } else {
+          res.push(`  ${k} : ${typeof obj[k]};`);
+        }
       }
     } else {
       res.push(`  ${k} : ${typeof obj[k]};`);

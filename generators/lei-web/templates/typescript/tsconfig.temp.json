@@ -11,7 +11,5 @@
     "pretty": true,
     "noUnusedLocals": true
   },
-  "include": [
-    "src/**/*"
-  ]
+  "include": ["src/**/*"]
 }

@@ -1,14 +1,4 @@
-const dependencies = [
-  '@leizm/web',
-  'erest',
-  'ioredis',
-  'lodash',
-  'mysql',
-  'pino',
-  'squel',
-  'uuid',
-  'js-yaml',
-];
+const dependencies = ['@leizm/web', 'erest', 'ioredis', 'lodash', 'mysql', 'pino', 'squel', 'uuid', 'js-yaml'];
 
 const dependenciesTS = [
   '@types/ioredis',

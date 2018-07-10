@@ -8,5 +8,4 @@ module.exports = class extends Generator {
   help() {
     this.log.yellow('使用 erest:init 初始化项目');
   }
-
 };

@@ -4,5 +4,5 @@ module.exports = {
     'template-curly-spacing': 'off',
     'array-bracket-spacing': 'off',
     'valid-jsdoc': 'off',
-  }
+  },
 };

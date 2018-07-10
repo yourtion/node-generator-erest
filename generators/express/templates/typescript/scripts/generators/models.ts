@@ -8,7 +8,7 @@
 import Debug from "debug";
 import util from "util";
 import { mysql, TYPES } from "../../src/global";
-import { firstUpperCase, underscore2camelCase } from "../global/base/utils";
+import { firstUpperCase, underscore2camelCase } from "../../src/global/base/utils";
 
 const debug = Debug("erest:create_model:");
 

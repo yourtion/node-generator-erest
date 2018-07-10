@@ -34,8 +34,8 @@ export class Request extends base.Request {
   public get $ip() {
     const ip = String(
       this.req.headers["x-real-ip"] || this.req.headers["x-forwarded-for"] || this.req.socket.remoteAddress
-    ).match(/\d+\.\d+\.\d+\.\d+/)
-    return ip && ip[0] || "";
+    ).match(/\d+\.\d+\.\d+\.\d+/);
+    return (ip && ip[0]) || "";
   }
 }
 

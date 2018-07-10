@@ -16,7 +16,7 @@ export function cros(req: Request, res: Response, next: NextFunction) {
   res.header("Access-Control-Allow-Credentials", "true");
   res.header(
     "Access-Control-Allow-Headers",
-    "Content-Type, Content-Length, Authorization, Accept, X-Requested-With , Cookie",
+    "Content-Type, Content-Length, Authorization, Accept, X-Requested-With , Cookie"
   );
   res.header("Access-Control-Allow-Methods", "PUT, POST, GET, DELETE, OPTIONS, PATCH");
   next();

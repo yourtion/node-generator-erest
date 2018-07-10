@@ -15,7 +15,7 @@ const logger = getLogger("redis");
 
 export const redis = config.redis && new Redis(config.redis);
 
-if(redis) {
+if (redis) {
   redis.on("error", err => logger.error(err));
 
   redis.on("connect", () => {

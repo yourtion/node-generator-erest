@@ -14,4 +14,3 @@ export * from "./gen/models.gen";
 
 import sequelLib from "squel";
 export const squel = sequelLib.useFlavour("mysql");
-

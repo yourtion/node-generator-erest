@@ -37,7 +37,6 @@ const GROUPS = {
   Base: "基础",
 };
 
-
 export type HANDLER = (req: IRequest, res: IResponse, next?: NextFunction) => void;
 
 const apiService = new API<HANDLER>({

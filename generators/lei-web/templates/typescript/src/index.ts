@@ -10,9 +10,9 @@ const projectName = pjson.name;
 
 const PORT = config.port || process.env.PORT || 3001;
 const HOST = config.host || process.env.HOST || "127.0.0.1";
-app.listen({ port: PORT, host: HOST}, () => {
+app.listen({ port: PORT, host: HOST }, () => {
   // tslint:disable-next-line no-console
-  console.log(`${ projectName } is listening on ${HOST}:${PORT}`);
+  console.log(`${projectName} is listening on ${HOST}:${PORT}`);
   if (process.send) {
     process.send("ready");
   }

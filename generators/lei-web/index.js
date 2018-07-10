@@ -50,11 +50,11 @@ module.exports = class extends Generator {
   }
 
   install() {
-    if(this.isTS) {
+    if (this.isTS) {
       this.npmInstall(config.getTSDeps(), { save: true, registry: 'https://registry.npm.taobao.org' });
       this.npmInstall(config.getTSDevDeps(), { 'save-dev': true, registry: 'https://registry.npm.taobao.org' });
     }
-    if(this.isJS) {
+    if (this.isJS) {
       this.npmInstall(config.getJSDeps(), { save: true, registry: 'https://registry.npm.taobao.org' });
       this.npmInstall(config.getJSDevDeps(), { 'save-dev': true, registry: 'https://registry.npm.taobao.org' });
     }

@@ -14,7 +14,7 @@ export function parsePages(ctx: Context) {
   const offset = param.offset || (page - 1) * pageCount;
   const order = param.order;
   const asc = param.asc;
-  ctx.request.$pages = { page, limit, offset , order, asc };
+  ctx.request.$pages = { page, limit, offset, order, asc };
   logger.trace("parsePages: ", ctx.request.$pages);
   ctx.next();
 }

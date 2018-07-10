@@ -19,7 +19,7 @@ app.use("/api", router);
 // 获取IP
 router.use("/", component.cors());
 router.use("/", component.bodyParser.json());
-router.use("/", component.bodyParser.urlencoded({ extended : true }));
+router.use("/", component.bodyParser.urlencoded({ extended: true }));
 
 require("./routers");
 apiService.bindRouterToApp(router, Router, apiService.checkerLeiWeb);
