@@ -1,13 +1,14 @@
 {
   "name": "generator-erest",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Yoman generator for erest. Easy build rest api",
   "files": [
     "utils",
     "generators"
   ],
   "scripts": {
-    "lint": "eslint generators utils --fix",
+    "format": "prettier --write \"./**/*.{js,ts,json}\"",
+    "prepublish": "npm run format",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -31,6 +32,7 @@
   },
   "devDependencies": {
     "eslint": "^4.19.1",
-    "eslint-config-guo": "^0.8.0"
+    "eslint-config-guo": "^0.8.0",
+    "prettier": "^1.13.7"
   }
 }
