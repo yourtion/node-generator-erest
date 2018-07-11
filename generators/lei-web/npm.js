@@ -21,7 +21,7 @@ exports.prompts = function prompts() {
       type: 'list',
       name: 'language',
       message: 'Please choose Language:',
-      choices: ['TypeScript', 'JavaScript'],
+      choices: ['TypeScript'],
     },
     {
       name: 'name',
