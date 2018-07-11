@@ -35,7 +35,9 @@ module.exports = class extends Generator {
         projectName: this.prop.name,
         target: this.prop.target,
       };
-      this.fs.copy(this.templatePath('typescript/(src|test|scripts)/**'), this.destinationPath('src'));
+      for (const dis of ['src', 'test', 'scripts']) {
+        this.fs.copy(this.templatePath(`typescript/${dis}`), this.destinationPath(dis));
+      }
       this.fs.copy(this.templatePath('typescript/.prettierrc.js'), this.destinationPath('.prettierrc.js'));
       this.fs.copyTpl(this.templatePath('typescript/tsconfig.temp.json'), this.destinationPath('tsconfig.json'), info);
       this.fs.copyTpl(this.templatePath('app.temp.json'), this.destinationPath('app.json'), info);

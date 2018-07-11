@@ -5,6 +5,15 @@
 
 import { utils } from "./base";
 
+export interface Schema {
+  type: string;
+  comment?: string;
+  format?: boolean;
+  default?: any;
+  required?: boolean;
+  params?: any;
+}
+
 /**
  * 参数构造
  *
@@ -18,7 +27,7 @@ export function build(type: string, comment: string, required?: boolean, default
   return utils.removeUndefined({ type, comment, required, default: defaultValue, params });
 }
 
-export function requireParam(schema: object) {
+export function requireParam(schema: Schema) {
   return Object.assign({ required: true }, schema);
 }
 

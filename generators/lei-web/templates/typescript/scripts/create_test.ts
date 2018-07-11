@@ -14,7 +14,7 @@ const debug = Debug("erest:test:");
 const FILE_PATH = path.resolve(__dirname, "../test/api/");
 
 require("../src/app");
-import apiService from "./api";
+import apiService from "../src/api";
 import { prettierSaveFile } from "./utils";
 
 function genIt(api: string, method: string, input: Record<string, any>, desc: string) {
@@ -46,7 +46,7 @@ ${lines.join("\n")}
 }
 
 function genTest(name: string, overwrite: boolean) {
-  const schemas = apiService.api.$schemas;
+  const schemas = apiService.api.$apis;
   debug(name);
   const data: Record<string, any>[] = [];
   for (const s of schemas.values()) {
