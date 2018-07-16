@@ -17,7 +17,24 @@ app.use("/admin", component.serveStatic(resolve(__dirname, "../public/admin")));
 app.use("/api", router);
 
 // 获取IP
-router.use("/", component.cors());
+router.use("/", (ctx) => {
+  if(ctx.request.headers.origin) {
+    ctx.response.setHeader("Access-Control-Allow-Origin", String(ctx.request.headers.origin));
+    ctx.response.setHeader("Access-Control-Allow-Credentials", "true");
+    ctx.response.setHeader(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Content-Length, Authorization, Accept, X-Requested-With , Cookie"
+    );
+    ctx.response.setHeader("Access-Control-Allow-Methods", "PUT, POST, GET, DELETE, OPTIONS, PATCH");
+  }
+  if (ctx.request.method && ctx.request.method.toUpperCase() === 'OPTIONS') {
+    ctx.response.setStatus(200);
+    ctx.response.end();
+  } else {
+    ctx.next();
+  }
+});
+
 router.use("/", component.bodyParser.json());
 router.use("/", component.bodyParser.urlencoded({ extended: true }));
 
@@ -26,8 +43,8 @@ apiService.bindRouterToApp(router, Router, apiService.checkerLeiWeb);
 
 router.use("/", (ctx, err: any) => {
   if (config.ispro && !err.show) {
-    // const path = req.route && req.route.path || req.url;
-    // logger.error(path, "params", req.$params);
+    const path = ctx.request.path || ctx.request.url;
+    logger.error(path, "params", ctx.request.$params);
     ctx.response.error(new errors.InternalError(err.code));
   } else {
     ctx.response.error(err);
