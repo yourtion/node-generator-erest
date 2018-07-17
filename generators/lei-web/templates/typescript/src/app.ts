@@ -17,8 +17,8 @@ app.use("/admin", component.serveStatic(resolve(__dirname, "../public/admin")));
 app.use("/api", router);
 
 // 获取IP
-router.use("/", (ctx) => {
-  if(ctx.request.headers.origin) {
+router.use("/", ctx => {
+  if (ctx.request.headers.origin) {
     ctx.response.setHeader("Access-Control-Allow-Origin", String(ctx.request.headers.origin));
     ctx.response.setHeader("Access-Control-Allow-Credentials", "true");
     ctx.response.setHeader(
@@ -27,7 +27,7 @@ router.use("/", (ctx) => {
     );
     ctx.response.setHeader("Access-Control-Allow-Methods", "PUT, POST, GET, DELETE, OPTIONS, PATCH");
   }
-  if (ctx.request.method && ctx.request.method.toUpperCase() === 'OPTIONS') {
+  if (ctx.request.method && ctx.request.method.toUpperCase() === "OPTIONS") {
     ctx.response.setStatus(200);
     ctx.response.end();
   } else {

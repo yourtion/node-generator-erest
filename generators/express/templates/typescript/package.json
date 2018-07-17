@@ -5,7 +5,8 @@
     "start": "ts-node src/index.ts",
     "dev": "nodemon -e ts -x ts-node src/index.ts",
     "test": "export NODE_ENV=test && mocha -r ts-node/register test/api/test-*.ts --exit",
-    "format": "prettier --write {src,scripts,test}/**/*.ts && npm run lint",
+    "docs": "prettier --write docs/*.md && cd docs && git add . && git commit && git push",
+    "format": "prettier --write {src,scripts,test}/**/*.ts",
     "code": "cd scripts && ts-node gencode.ts -P .",
     "deploy": "git pull && npm run tnpm -- --production && tsc && pm2 startOrGracefulReload app.json",
     "logs": "tail -F ./logs/*.log | pino -l"
