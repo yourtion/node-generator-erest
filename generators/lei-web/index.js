@@ -1,5 +1,6 @@
 const Generator = require('yeoman-generator');
 
+const fs = require('fs');
 const { prompts, genPackage } = require('./npm');
 const utils = require('../../utils/utils');
 const config = require('./config');
@@ -60,5 +61,8 @@ module.exports = class extends Generator {
       this.npmInstall(config.getJSDeps(), { save: true, registry: 'https://registry.npm.taobao.org' });
       this.npmInstall(config.getJSDevDeps(), { 'save-dev': true, registry: 'https://registry.npm.taobao.org' });
     }
+    fs.mkdirSync(this.destinationPath('logs'));
+    fs.mkdirSync(this.destinationPath('src', 'controllers'));
+    fs.mkdirSync(this.destinationPath('docs'));
   }
 };
