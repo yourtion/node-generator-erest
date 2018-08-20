@@ -20,7 +20,7 @@ import { prettierSaveFile } from "./utils";
 function genIt(api: string, method: string, input: Record<string, any>, desc: string) {
   return `
   it('${desc}', async () => {
-    const ret = await agent.${method}('/api${api}')
+    const ret = await agent.${method}(\`/api${api.replace(/:(\w+)/, '${share.$1}')}\`)
       .input(${util.inspect(input, false, 2).replace(/'/g, "")})
       .takeExample('${desc}')
       .success();
@@ -32,9 +32,10 @@ function genIt(api: string, method: string, input: Record<string, any>, desc: st
 function genFile(name: string, lines: string[]) {
   return `import { assert } from "chai";
 
-import apiService from "./init";
+import apiService, { IShareData } from "./init";
 const agent = apiService.test.session();
-const shareData = apiService.shareTestData.data;
+const shareTestData = apiService.shareTestData as IShareData;
+const { data: shareData } = shareTestData;
 
 const share = Object.assign({
 }, shareData.core, shareData.${name});

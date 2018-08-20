@@ -19,6 +19,11 @@ const result = {
   schemas: {},
   indexs: ["/** \n* @file models export\n* @author Yourtion Guo <yourtion@gmail.com>\n*/\n"],
   modelNames: [],
+  models: [],
+  tables: [],
+  tableImport: "",
+  coreModelGen: [],
+  coreModelSymbl: [],
 };
 
 function convertFiled(field: string, nullable: boolean) {
@@ -122,7 +127,7 @@ function genFile(
   result.indexs.push(`export * from "./${tableName}.m";`);
 
   // 生成模型
-  result.modelNames.push(`"${tableCamelCase}Model"`);
+  result.modelNames.push(tableCamelCase);
   // 生成模型所需文件
   result.tableGen.push(`
     /** ${tableCommet} */
@@ -139,6 +144,16 @@ function genFile(
   if (key) {
     opt = `{fields: ${tableCamelCase}Fields, primaryKey: "${key}"}`;
   }
+  result.models.push(tableString + "Model");
+  result.tables.push(tableCamelCase);
+
+  // 生成 core.gen
+  result.coreModelGen.push(`
+  /** ${tableCommet} */
+  get ${tableCamelCase}() {
+    return this.getCache(${tableString.toUpperCase()}_M_SYM, ${firstUpperCase(tableString)}Model);
+  }`);
+
   // 生成 Models 文件
   result.schemas[tableName] = `
     /**
@@ -148,15 +163,14 @@ function genFile(
 
     import {IModels${tableString}, ${tableCamelCase}Table, ${tableCamelCase}Fields} from "../global/gen/models.gen";
     import Base from "./base";
+    import { Context } from "../web";
 
-    export class ${tableString} extends Base<IModels${tableString}> {
-      constructor(options = {}) {
+    export class ${tableString}Model extends Base<IModels${tableString}> {
+      constructor(ctx: Context ,options = {}) {
         const opt = Object.assign(${opt}, options);
-        super(${tableCamelCase}Table, opt);
+        super(ctx, ${tableCamelCase}Table, opt);
       }
     }
-
-    export const ${tableCamelCase}Model = new ${tableString}();
   `;
 }
 
@@ -176,6 +190,13 @@ export async function genModels(tbPrefix: string) {
   for (const t of tableList) {
     await genTable(tbPrefix, t);
   }
-  result.tableGen.push("export type ModelName = " + result.modelNames.join(" | "));
+  if (result.modelNames && result.modelNames.length > 0) {
+    result.tableGen.push(`export const ModelNames = [${result.modelNames.map(m => `"${m}"`).join(", ")}]`);
+    result.tableGen.push(`export type ModelName = ${result.modelNames.map(m => `"${m}Model"`).join(" | ")}`);
+  }
+  result.tableImport = `import { ${result.models.join(", ")} } from "../../models";`;
+  for (const t of result.tables) {
+    result.coreModelSymbl.push(`const ${t.toUpperCase()}_M_SYM = Symbol("${t.toUpperCase()}");`);
+  }
   return result;
 }
