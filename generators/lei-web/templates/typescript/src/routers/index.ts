@@ -4,7 +4,8 @@
  */
 import fs from "fs";
 import path from "path";
-import { logger } from "../global";
+import { getLogger } from "../global";
+const logger = getLogger("router");
 
 const dirPath = path.resolve(__dirname, "./");
 const list = fs.readdirSync(dirPath);

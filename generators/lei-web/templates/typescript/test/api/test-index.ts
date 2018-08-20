@@ -1,18 +1,12 @@
 import { assert } from "chai";
 
-import apiService from "./init";
-const agent = apiService.test.session();
-const shareData = apiService.shareTestData.data;
-
-const share = Object.assign({}, shareData.core, shareData.index);
+import testAgent from "./init";
+const { data } = testAgent.share;
+const share = Object.assign({}, data.core, data.base);
 
 describe("API - Index", () => {
   it("TEST - index", async () => {
-    const ret = await agent
-      .get("/api/base/index")
-      .input(share)
-      .takeExample("Base-Index")
-      .success();
+    const ret = await testAgent.getBaseIndexOk(share, "Base-Index");
     assert.equal(ret, "Hello, API Framework Index");
   });
 });

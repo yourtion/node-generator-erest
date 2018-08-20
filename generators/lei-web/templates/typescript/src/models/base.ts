@@ -3,8 +3,10 @@
  * @author Yourtion Guo <yourtion@gmail.com>
  */
 import { Delete, Insert, MysqlInsert, QueryBuilder, Select, Update } from "squel";
-import { config, errors, IConnectionPromise, mysql, mysqlLogger, squel, utils } from "../global";
+import { config, errors, IConnectionPromise, mysql, squel, utils } from "../global";
 import { IPageParams, IPoolPromise } from "../global";
+import { BaseModel } from "../core";
+import { Context } from "../web";
 
 export { Delete, Insert, MysqlInsert, Select, Update, IPoolPromise };
 
@@ -18,11 +20,17 @@ export interface IPageResult<T> {
 export type IConditions = Record<string, number | string | string[]>;
 export type IPrimary = string | number;
 
+/** 联表查询 */
 export interface IJoinTable {
+  /** 表格 */
   table: string;
+  /** 别名 */
   alias: string;
+  /** 连表条件 */
   condition: string;
+  /** 所需字段 */
   fields?: string[];
+  /** 该表查询条件 */
   where?: Record<string, any>;
 }
 
@@ -84,38 +92,6 @@ function _parseWhere(sql: Select, conditions: Record<string, any>, alias?: strin
   });
 }
 
-/**
- * 数据库错误处理
- *
- * @param {Error} err 错误
- */
-function errorHandler(err: any) {
-  // 如果是自定义错误直接抛出
-  if (err.code && !isNaN(err.code - 0)) {
-    throw err;
-  }
-  // 获取源文件堆栈信息
-  const source = utils.getErrorSourceFromCo(err);
-  // 判断条件
-  switch (err.code) {
-    case "ER_DUP_ENTRY":
-      mysqlLogger.warn(err.sqlMessage);
-      throw new errors.RepeatError();
-    default:
-      if (err.sql) {
-        mysqlLogger.error({
-          code: err.code,
-          message: err.sqlMessage,
-          sql: err.sql,
-          source,
-        });
-      } else {
-        mysqlLogger.error(err);
-      }
-      throw new errors.DatabaseError(err.sqlMessage || err);
-  }
-}
-
 export interface IBaseOptions {
   prefix?: string;
   primaryKey?: string;
@@ -123,7 +99,7 @@ export interface IBaseOptions {
   order?: string;
 }
 
-export default class Base<T> {
+export default class Base<T> extends BaseModel {
   public table: string;
   public primaryKey: string;
   public connect = mysql;
@@ -139,12 +115,45 @@ export default class Base<T> {
    *   - {Object} order 默认排序字段
    * @memberof Base
    */
-  constructor(table: string, options: IBaseOptions = {}) {
+  constructor(ctx: Context, table: string, options: IBaseOptions = {}) {
+    super(ctx);
     const tablePrefix = options.prefix !== undefined ? options.prefix : config.tablePrefix;
     this.table = tablePrefix ? tablePrefix + table : table;
     this.primaryKey = options.primaryKey || "id";
     this.fields = options.fields || [];
     this.order = options.order;
+  }
+
+  /**
+   * 数据库错误处理
+   *
+   * @param {Error} err 错误
+   */
+  errorHandler(err: any) {
+    // 如果是自定义错误直接抛出
+    if (err.code && !isNaN(err.code - 0)) {
+      throw err;
+    }
+    // 获取源文件堆栈信息
+    const source = utils.getErrorSourceFromCo(err);
+    // 判断条件
+    switch (err.code) {
+      case "ER_DUP_ENTRY":
+        this.log.warn(err.sqlMessage);
+        throw new errors.RepeatError();
+      default:
+        if (err.sql) {
+          this.log.error({
+            code: err.code,
+            message: err.sqlMessage,
+            sql: err.sql,
+            source,
+          });
+        } else {
+          this.log.error(err);
+        }
+        throw new errors.DatabaseError(err.sqlMessage || err);
+    }
   }
 
   /**
@@ -156,7 +165,7 @@ export default class Base<T> {
    */
   public debugSQL(name: string) {
     return (sql: any, ...info: any[]) => {
-      mysqlLogger.debug(name, sql, ...info);
+      this.log.debug(name, sql, ...info);
       return sql;
     };
   }
@@ -165,14 +174,14 @@ export default class Base<T> {
    * 查询方法（内部查询尽可能调用这个，会打印Log）
    */
   public query(sql: QueryBuilder | string, connection: IConnectionPromise | IPoolPromise = mysql) {
-    const logger = (connection as IConnectionPromise).debug ? (connection as IConnectionPromise) : mysqlLogger;
+    const logger = (connection as IConnectionPromise).debug ? (connection as IConnectionPromise) : this.log;
     if (typeof sql === "string") {
       logger.debug!(sql);
-      return connection.queryAsync(sql).catch(err => errorHandler(err));
+      return connection.queryAsync(sql).catch(err => this.errorHandler(err));
     }
     const { text, values } = sql.toParam();
     logger.debug!(text, values);
-    return connection.queryAsync(text, values).catch(err => errorHandler(err));
+    return connection.queryAsync(text, values).catch(err => this.errorHandler(err));
   }
 
   public truncateTable() {
@@ -427,30 +436,46 @@ export default class Base<T> {
     return sql;
   }
 
+  public createOrUpdateRaw(
+    connect: IConnectionPromise | IPoolPromise,
+    objects: Record<string, any>,
+    update = Object.keys(objects)
+  ) {
+    return this.query(this._createOrUpdate(objects, update), connect);
+  }
+
   /**
    * 创建一条记录，如果存在就更新
    */
   public createOrUpdate(objects: Record<string, any>, update = Object.keys(objects)) {
-    return this.query(this._createOrUpdate(objects, update));
+    return this.createOrUpdateRaw(this.connect, objects, update);
   }
 
-  public _incrFields(primary: IPrimary, fields: string[], num = 1) {
+  public _incrFields(primary: IPrimary | IPrimary[], fields: Array<string | [string, number]>, num = 1) {
     if (primary === undefined) {
       throw new Error("`primary` 不能为空");
     }
 
-    const sql = squel
-      .update()
-      .table(this.table)
-      .where(this.primaryKey + " = ?", primary);
-    fields.forEach(f => sql.set(`${f} = ${f} + ${num}`));
+    const sql = squel.update().table(this.table);
+    if (Array.isArray(primary)) {
+      sql.where(this.primaryKey + " in ?", primary);
+    } else {
+      sql.where(this.primaryKey + " = ?", primary);
+    }
+    fields.forEach(f => {
+      if (typeof f === "string") {
+        sql.set(`${f} = ${f} + ${num}`);
+      } else {
+        sql.set(`${f[0]} = ${f[0]} + ${f[1]}`);
+      }
+    });
     return sql;
   }
 
   public incrFieldsRaw(
     connect: IConnectionPromise | IPoolPromise,
-    primary: IPrimary,
-    fields: string[],
+    primary: IPrimary | IPrimary[],
+    fields: Array<string | [string, number]>,
     num = 1
   ): Promise<number> {
     return this.query(this._incrFields(primary, fields, num), connect).then((res: any) => res && res.affectedRows);
@@ -459,7 +484,7 @@ export default class Base<T> {
   /**
    * 根据主键对数据列执行加一操作
    */
-  public incrFields(primary: IPrimary, fields: string[], num = 1) {
+  public incrFields(primary: IPrimary | IPrimary[], fields: Array<string | [string, number]>, num = 1) {
     return this.incrFieldsRaw(this.connect, primary, fields, num);
   }
 
@@ -621,83 +646,10 @@ export default class Base<T> {
       // 回滚错误
       await connection.rollbackAsync();
       debug(`Transaction Rollback ${err.code}`);
-      errorHandler(err);
+      this.errorHandler(err);
     } finally {
       connection.release();
     }
-  }
-
-  /**
-   * 执行事务（通过传人SQL语句数组）
-   *
-   * @param {Array<String>} sqls SQL语言数组
-   * @returns {Promise}
-   * @memberof Base
-   */
-  public async transactionSQLs(sqls: string[]): Promise<any> {
-    if (!sqls || sqls.length < 1) {
-      throw new errors.DatabaseError("`sqls` 不能为空");
-    }
-    mysqlLogger.debug("Begin Transaction");
-    const connection = await mysql.getConnectionAsync();
-    await connection.beginTransactionAsync();
-    try {
-      for (const sql of sqls) {
-        mysqlLogger.debug(`Transaction SQL: ${sql}`);
-        await connection.queryAsync(sql);
-      }
-      const res = await connection.commitAsync();
-      mysqlLogger.debug("Done Transaction");
-      return res;
-    } catch (err) {
-      await connection.rollbackAsync();
-      mysqlLogger.debug("Rollback Transaction");
-      errorHandler(err);
-    } finally {
-      await connection.release();
-    }
-  }
-
-  /**
-   * 获取统计信息通用方法
-   *
-   * @param {String} start 开始时间
-   * @param {String} end 结束时间
-   * @returns {Promise}
-   * @memberof Base
-   */
-  public getStatistics(start: string, end: string) {
-    const table = squel.select().from(this.table);
-    const statusSql = table
-      .clone()
-      .field(`count(${this.primaryKey})`, "total")
-      .field(
-        table
-          .clone()
-          .field(`count(${this.primaryKey})`)
-          .where("date(created_at) = curdate()"),
-        "today"
-      );
-    const listSql = table
-      .clone()
-      .where("created_at >= ?", start + " 00:00:00")
-      .where("created_at <= ?", end + " 23:59:59")
-      .order("day", false)
-      .field(`count(${this.primaryKey})`, "day_count")
-      .field("date(created_at)", "day")
-      .field(
-        table
-          .clone()
-          .field(`count(${this.primaryKey})`)
-          .where("created_at <= DATE_ADD(`day`, INTERVAL 1 DAY) "),
-        "day_total"
-      )
-      .group("date(created_at)");
-    const statusExec = this.query(statusSql);
-    const listExec = this.query(listSql);
-    return Promise.all([statusExec, listExec]).then(
-      ([status, list]) => list && status && status[0] && { status: status[0], list }
-    );
   }
 
   public _join(alias: string, options: IJoinOptions, isCount: boolean, ...tables: IJoinTable[]) {
@@ -729,9 +681,16 @@ export default class Base<T> {
     }
     return sql;
   }
+
+  /**
+   * 连表列表查询
+   */
   public join(alias: string, options: IJoinOptions, ...tables: IJoinTable[]) {
     return this.query(this._join(alias, options, false, ...tables));
   }
+  /**
+   * 连表分页
+   */
   public joinPage(alias: string, options: IJoinPageOptions, ...tables: IJoinTable[]) {
     const opt = {
       conditions: options.conditions,

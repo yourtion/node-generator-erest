@@ -6,7 +6,8 @@ import mysqlLib from "mysql";
 import { Pool, PoolConnection, QueryOptions } from "mysql";
 import { promisify } from "util";
 import { config } from "./base";
-import { mysqlLogger } from "./logger";
+import { getLogger } from "./logger";
+const logger = getLogger("mysql");
 
 function pfy(input: any, keys: string[]) {
   keys.forEach(key => {
@@ -46,14 +47,14 @@ if (mysql) {
   mysql
     .getConnectionAsync()
     .then((connection: IConnectionPromise) => {
-      mysqlLogger.debug("MySQL connected");
+      logger.debug("MySQL connected");
       return connection.release();
     })
     .catch((err: any) => {
       if (err.code === "ETIMEDOUT") {
-        mysqlLogger.error("ETIMEDOUT");
+        logger.error("ETIMEDOUT");
       } else {
-        mysqlLogger.error(err);
+        logger.error(err);
       }
     });
 }

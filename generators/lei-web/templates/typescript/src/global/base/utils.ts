@@ -250,6 +250,14 @@ export function firstUpperCase(str: string) {
 }
 
 /**
+ * 首字母小写
+ * @param {String} str 输入字符串
+ */
+export function firstLowerCase(str: string) {
+  return str.replace(/^\S/, s => s.toLowerCase());
+}
+
+/**
  * 下划线转驼峰
  * @param {String} str 输入字符串
  */
@@ -299,6 +307,41 @@ export function filterParams(data: Record<string, any>, arr: any[]) {
  */
 export function render(template: string, context: Record<string, any>) {
   return template.replace(/\{\{(.*?)\}\}/g, (match, key) => context[key]);
+}
+
+const RATE = Symbol("RATE");
+const START = Symbol("START");
+const END = Symbol("END");
+export interface IGift extends Record<string, any> {
+  [RATE]: number;
+  [START]: number;
+  [END]: number;
+}
+
+/** 抽奖 */
+export function lottory<T extends Record<string, any>>(gifts: T[], key = "rate"): T | null {
+  const arr: Array<IGift & T> = [];
+  let total = 0;
+  gifts.forEach(gift => {
+    const newGift = Object.assign(
+      {
+        [START]: total,
+        [RATE]: gift[key],
+        [END]: total,
+      },
+      gift
+    );
+    total += gift[key];
+    newGift[END] = total;
+    arr.push(newGift);
+  });
+  const random = Math.random() * total;
+  for (const gift of arr) {
+    if (gift[START] <= random && gift[END] > random) {
+      return gift as T;
+    }
+  }
+  return null;
 }
 
 export const existsAsync = promisify(exists);

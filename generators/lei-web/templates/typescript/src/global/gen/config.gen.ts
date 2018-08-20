@@ -23,9 +23,13 @@ export interface IConfig {
   env: string;
   ispro: boolean;
   tablePrefix: string;
-  cookieMaxAge: string;
+  /** 默认 cookies 时间 (7day) */
+  cookieMaxAge: number;
+  /** session 密钥 */
   sessionSecret: string;
+  /** session 前缀 */
   sessionPrefix: string;
+  /** 密码加盐长度 */
   saltRounds: number;
   loggerDebug: boolean;
   redisKey: string;

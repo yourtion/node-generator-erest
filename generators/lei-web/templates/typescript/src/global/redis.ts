@@ -9,10 +9,6 @@ import { getLogger } from "./logger";
 
 const logger = getLogger("redis");
 
-(Redis as any).Promise.onPossiblyUnhandledRejection((error: Error) => {
-  logger.error(error);
-});
-
 export const redis = config.redis && new Redis(config.redis);
 
 if (redis) {

@@ -43,6 +43,8 @@ export const TYPES = {
   ENUM: "ENUM",
   /** 逗号分隔的Int数组 */
   IntArray: "IntArray",
+  /** 逗号分隔的字符串数组 */
+  StringArray: "StringArray",
   /** 可为null字符串 */
   NullableString: "NullableString",
   /** 可为null整数 */

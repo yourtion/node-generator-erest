@@ -2,19 +2,46 @@
  * @file 中间件
  * @author Yourtion Guo <yourtion@gmail.com>
  */
+import { Context, component } from "../web";
+import { redis, config, errors } from "../global";
+import { MiddlewareHandle } from "@leizm/web";
 
-import { Context } from "../web";
-import { logger } from "../global";
+export interface IXLSXRes {
+  name: string;
+  data: any[];
+}
+export interface xlsx {
+  build(sheets: any[]): Buffer;
+  parse(buffer: Buffer | string): IXLSXRes[];
+}
 
-export function parsePages(ctx: Context) {
-  const param = ctx.request.$params || ctx.request.query;
-  const page = (param.page && Number(param.page)) || 1;
-  const pageCount = (param.page_count && Number(param.page_count)) || 30;
-  const limit = param.limit || pageCount;
-  const offset = param.offset || (page - 1) * pageCount;
-  const order = param.order;
-  const asc = param.asc;
-  ctx.request.$pages = { page, limit, offset, order, asc };
-  logger.trace("parsePages: ", ctx.request.$pages);
-  ctx.next();
+const xlsx = require("node-xlsx") as xlsx;
+
+const redisSession = component.session({
+  store: new component.SessiionRedisStore({
+    client: redis as any,
+    prefix: config.redisKey,
+  }),
+  maxAge: config.cookieMaxAge,
+});
+const cookie = component.cookieParser(config.sessionSecret);
+
+export function session(...ext: MiddlewareHandle<Context>[]) {
+  return [cookie, redisSession, ...ext];
+}
+
+export function parseExcelFile() {
+  function parseExcel(ctx: Context) {
+    const file = ctx.request.files.file;
+    if (!file) throw new errors.MissingParameter("缺少文件");
+    const extName = file && file.originalName && file.originalName.split(".").pop();
+    if (!extName || ["xls", "xlsx"].indexOf(extName) === -1) {
+      throw new errors.InvalidParameter("文件类型错误");
+    }
+    const buffer = file.buffer;
+    ctx.request.$sheet = xlsx.parse(buffer)[0].data;
+    if (!ctx.request.$sheet || ctx.request.$sheet.length < 2) throw new errors.InvalidParameter("数据量不足");
+    ctx.next();
+  }
+  return [component.bodyParser.multipart({ smallFileSize: Infinity }), parseExcel];
 }

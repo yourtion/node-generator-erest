@@ -9,9 +9,13 @@ import { InternalError, InvalidParameter, MissingParameter } from "./global/gen/
 
 import { Context } from "./web";
 
+const description = `
+${(pjson as any).name}系统API文档
+`;
+
 const INFO = {
   title: (pjson as any).name || "",
-  description: (pjson as any).name + "系统API文档",
+  description,
   version: new Date(),
   host: "http://127.0.0.1:3001",
   basePath: "/api",

@@ -7,6 +7,10 @@ import util from "util";
 
 import apiService from "../../src/api";
 import app from "../../src/app";
+import { Context } from "../../src/web";
+import { Model, Service } from "../../src/global/index";
+import prettier from "prettier";
+import APITest from "./api.gen";
 
 const debug = Debug("erest:test");
 
@@ -25,7 +29,7 @@ apiService.initTest(app.server, __dirname);
 
 function format(data: any): [Error | null, any] {
   debug(util.inspect(data, false, 5, true));
-  if (data.success && data.result) {
+  if (data.ok && data.result) {
     return [null, data.result];
   }
   return [data.msg || data.message, null];
@@ -33,8 +37,28 @@ function format(data: any): [Error | null, any] {
 
 apiService.setFormatOutput(format);
 
-apiService.shareTestData = {
-  data: testData,
+function prettierSaveFile(filepath: string, content: string) {
+  const str = prettier.format(content, { filepath });
+  return fs.writeFileSync(filepath, str, "utf8");
+}
+
+apiService.setDocWritter(prettierSaveFile);
+
+class MockContext extends Context {
+  public test = true;
+  get request() {
+    return { path: undefined, $params: {} } as any;
+  }
+}
+
+const ctx = new MockContext();
+
+const shareTestData = {
+  data: testData as any,
+  model: new Model(ctx),
+  service: new Service(ctx),
 };
 
-export default apiService;
+const testAgent = new APITest(apiService, shareTestData);
+
+export default testAgent;
