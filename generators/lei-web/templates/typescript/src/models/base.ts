@@ -34,38 +34,35 @@ export interface IJoinTable {
   where?: Record<string, any>;
 }
 
+/** 联表查询条件 */
 export interface IJoinOptions {
+  /** 主表查询条件 */
   conditions?: Record<string, any>;
+  /** 查询字段 */
   fields?: string[];
   limit: number;
   offset: number;
-  order?: string;
+  order?: string | Orders;
   asc?: boolean;
 }
 
+/** 连表分页 */
 export interface IJoinPageOptions {
+  /** 查询条件 */
   conditions?: Record<string, any>;
+  /** 所需字段 */
   fields?: string[];
   page: IPageParams;
 }
 
-/**
- * 删除对象中的 undefined
- *
- * @param {Object} object
- * @returns {Object}
- */
+/** 删除对象中的 undefined */
 function removeUndefined(object: Record<string, any>) {
   Object.keys(object).forEach(key => object[key] === undefined && delete object[key]);
-  if (Object.keys.length === 0) {
-    throw new errors.DatabaseError("Object is empty");
-  }
   return object;
 }
 
 /**
  * 解析 Where
- *
  * @param {Object} sql Squel 对象
  * @param {Object} conditions 查询条件
  */
@@ -92,10 +89,17 @@ function _parseWhere(sql: Select, conditions: Record<string, any>, alias?: strin
   });
 }
 
+export type Orders = Array<[string, boolean]>;
+
+/** 初始化参数 */
 export interface IBaseOptions {
+  /** 表前缀 */
   prefix?: string;
+  /** 主键 key */
   primaryKey?: string;
+  /** 默认字段 */
   fields?: string[];
+  /** 默认排序key */
   order?: string;
 }
 
@@ -104,16 +108,18 @@ export default class Base<T> extends BaseModel {
   public primaryKey: string;
   public connect = mysql;
   public fields: string[];
-  public order?: string;
+  public order?: string | Orders;
   public _parseWhere = _parseWhere;
 
   /**
    * Creates an instance of Base.
-   * @param {String} table 表名
+   * @param {Any} ctx 上下文
+   * @param {String} tabletable 表名
    * @param {Object} [options={}]
-   *   - {Object} fields 默认列
-   *   - {Object} order 默认排序字段
-   * @memberof Base
+   * @param {String} options.prefix - 表前缀
+   * @param {String} options.primaryKey 主键 key
+   * @param {Array} options.fields 默认字段
+   * @param {String} options.order 默认排序key
    */
   constructor(ctx: Context, table: string, options: IBaseOptions = {}) {
     super(ctx);
@@ -124,31 +130,18 @@ export default class Base<T> extends BaseModel {
     this.order = options.order;
   }
 
-  /**
-   * 数据库错误处理
-   *
-   * @param {Error} err 错误
-   */
+  /** 数据库错误处理 */
   errorHandler(err: any) {
     // 如果是自定义错误直接抛出
-    if (err.code && !isNaN(err.code - 0)) {
-      throw err;
-    }
-    // 获取源文件堆栈信息
-    const source = utils.getErrorSourceFromCo(err);
+    if (err.code && !isNaN(err.code - 0)) throw err;
     // 判断条件
     switch (err.code) {
       case "ER_DUP_ENTRY":
-        this.log.warn(err.sqlMessage);
+        this.log.debug(err.sqlMessage);
         throw new errors.RepeatError();
       default:
         if (err.sql) {
-          this.log.error({
-            code: err.code,
-            message: err.sqlMessage,
-            sql: err.sql,
-            source,
-          });
+          this.log.error({ code: err.code, message: err.sqlMessage, sql: err.sql });
         } else {
           this.log.error(err);
         }
@@ -158,13 +151,11 @@ export default class Base<T> extends BaseModel {
 
   /**
    * 输出 SQL Debug
-   *
    * @param {String} name Debug 前缀
    * @returns {String} SQL
-   * @memberof Base
    */
   public debugSQL(name: string) {
-    return (sql: any, ...info: any[]) => {
+    return (sql: QueryBuilder | string, ...info: any[]) => {
       this.log.debug(name, sql, ...info);
       return sql;
     };
@@ -172,6 +163,8 @@ export default class Base<T> extends BaseModel {
 
   /**
    * 查询方法（内部查询尽可能调用这个，会打印Log）
+   * @param sql 数据库查询语句
+   * @param connection 数据库连接
    */
   public query(sql: QueryBuilder | string, connection: IConnectionPromise | IPoolPromise = mysql) {
     const logger = (connection as IConnectionPromise).debug ? (connection as IConnectionPromise) : this.log;
@@ -184,6 +177,7 @@ export default class Base<T> extends BaseModel {
     return connection.queryAsync(text, values).catch(err => this.errorHandler(err));
   }
 
+  /** 清空表 */
   public truncateTable() {
     return this.query("TRUNCATE TABLE `" + this.table + "`;");
   }
@@ -307,8 +301,6 @@ export default class Base<T> extends BaseModel {
    *
    * @param {Object} [object={}] 字段、值对象
    * @param {Number} [limit=1] 删除条数
-   * @returns {Promise}
-   * @memberof Base
    */
   public deleteByField(conditions: IConditions, limit = 1) {
     return this.deleteByFieldRaw(this.connect, conditions, limit);
@@ -319,8 +311,6 @@ export default class Base<T> extends BaseModel {
    *
    * @param {Object} [object={}] 字段、值对象
    * @param {Array} [fields=this.fields] 所需要的列数组
-   * @returns {Promise}
-   * @memberof Base
    */
   public getByField(conditions: IConditions = {}, fields = this.fields): Promise<T[]> {
     return this.list(conditions, fields, 999);
@@ -505,7 +495,13 @@ export default class Base<T> extends BaseModel {
     fields.forEach(f => sql.field(f));
     _parseWhere(sql, conditions);
     if (order) {
-      sql.order(order, asc);
+      if (order instanceof Array) {
+        order.forEach(([_order, _direction = true]) => {
+          sql.order(_order, _direction);
+        });
+      } else {
+        sql.order(order as string, asc);
+      }
     }
     return sql;
   }
@@ -537,7 +533,7 @@ export default class Base<T> extends BaseModel {
     fields?: string[],
     limit?: number,
     offset?: number,
-    order?: string,
+    order?: string | Orders,
     asc?: boolean
   ): Promise<T[]>;
   public list(conditions = {}, fields = this.fields, ...args: any[]) {
@@ -568,7 +564,13 @@ export default class Base<T> extends BaseModel {
     });
     sql.where(exp);
     if (order) {
-      sql.order(order, asc);
+      if (order instanceof Array) {
+        order.forEach(([_order, _direction = true]) => {
+          sql.order(_order, _direction);
+        });
+      } else {
+        sql.order(order as string, !!asc);
+      }
     }
     return sql;
   }
@@ -624,7 +626,6 @@ export default class Base<T> extends BaseModel {
    *
    * @param {String} name
    * @param {Function} func
-   * @memberof Base
    */
   public async transactions(name: string, func: (conn: IConnectionPromise) => Promise<any>): Promise<any> {
     if (!name) {
@@ -672,7 +673,14 @@ export default class Base<T> extends BaseModel {
       _parseWhere(sql, options.conditions, alias);
     }
     if (!isCount && options.order) {
-      sql.order(`${alias}.${options.order}`, options.asc);
+      const { order, asc } = options;
+      if (order instanceof Array) {
+        order.forEach(([_order, _direction = true]) => {
+          sql.order(`${alias}.${_order}`, _direction);
+        });
+      } else {
+        sql.order(`${alias}.${order}`, !!asc);
+      }
     }
     if (!isCount && options.limit > 0) {
       sql.offset(options.offset).limit(options.limit);
