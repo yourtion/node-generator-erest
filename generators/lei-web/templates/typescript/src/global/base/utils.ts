@@ -13,9 +13,7 @@ const NUMBERL = NUMBER.length;
 const CHARTS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 const CHARTSL = CHARTS.length;
 
-/**
- * leftPad
- */
+/** leftPad */
 export function leftPad(n: any, c: number) {
   let res = String(n);
   while (res.length < c) {
@@ -24,9 +22,7 @@ export function leftPad(n: any, c: number) {
   return res;
 }
 
-/**
- * MD5
- */
+/** MD5 */
 export function md5(str: string) {
   return createHash("md5")
     .update(str)
@@ -95,7 +91,7 @@ export function dateTimeChinese(date = new Date()) {
 }
 
 /**
- * 生成随机数
+ * 生成随机数（系统调用）
  * @param {Number} num 数量
  */
 export function randomString(num: number) {
@@ -104,9 +100,7 @@ export function randomString(num: number) {
     .substr(0, num);
 }
 
-/**
- * 返回随机字符串
- */
+/**返回随机字符串 */
 export function createNonceStr(length: number) {
   const str = [];
   for (let i = 0; i < length; i++) {
@@ -184,50 +178,6 @@ export function removeUndefined(object: any) {
 }
 
 /**
- * 将对象 object 合并到对象数组 array 元素中
- *
- * @param {Array} array 对象数组
- * @param {Object} object 待合并对象
- * @param {String} k1 array 中对象的key
- * @param {String} k2 对应 object 中的 key
- * @param {String} prefix 合并的前缀
- * @returns {Array}
- */
-export function mergeInfo(array: any[], object: Record<string, any>, k1: string, k2: string, prefix: string) {
-  array.map(a => {
-    if (a[k1] === object[a[k1]][k2]) {
-      const obj = object[a[k1]];
-      Object.keys(obj).forEach(k => {
-        a[prefix + "_" + k] = obj[k];
-        if (k === "thumbnail") {
-          a[k] = obj[k];
-        }
-      });
-    }
-    return a[k1];
-  });
-  return array;
-}
-
-/**
- * 获取 coroutine 中错误堆栈
- * @param {Error} err 错误
- * @param {String} base 默认文件路径
- * @return {Array}
- */
-export function getErrorSourceFromCo(err: Error, base = "/src/") {
-  const reaseon: string[] = [];
-  if (err.stack) {
-    for (const line of err.stack.split("\n")) {
-      if (line.indexOf(base) !== -1) {
-        reaseon.push(line.trim().replace("at ", ""));
-      }
-    }
-  }
-  return reaseon;
-}
-
-/**
  * 合并URL
  * @param {String} dist 目标URL
  * @param {Object} query 附加 query 对象
@@ -241,26 +191,17 @@ export function mergeUrl(dist: string, query: any, hash: string) {
   return format(distUrl);
 }
 
-/**
- * 首字母大写
- * @param {String} str 输入字符串
- */
+/** 首字母大写 */
 export function firstUpperCase(str: string) {
   return str.replace(/^\S/, s => s.toUpperCase());
 }
 
-/**
- * 首字母小写
- * @param {String} str 输入字符串
- */
+/** 首字母小写 */
 export function firstLowerCase(str: string) {
   return str.replace(/^\S/, s => s.toLowerCase());
 }
 
-/**
- * 下划线转驼峰
- * @param {String} str 输入字符串
- */
+/** 下划线转驼峰 */
 export function underscore2camelCase(str: string) {
   return str
     .replace(/^[_.\- ]+/, "")
@@ -271,12 +212,12 @@ export function underscore2camelCase(str: string) {
 /**
  * 参数检查
  * @param {Object} data 数据
- * @param {Array} arr 数据key
+ * @param {Array} keys 数据key
  */
-export function checkParams(data: Record<string, any>, arr: any[]) {
-  for (const val of arr) {
-    if (data[val] === undefined) {
-      return `"${val}" is required`;
+export function checkParams(data: Record<string, any>, keys: string[]) {
+  for (const key of keys) {
+    if (data[key] === undefined) {
+      return `"${key}" is required`;
     }
   }
   return false;
@@ -285,11 +226,11 @@ export function checkParams(data: Record<string, any>, arr: any[]) {
 /**
  * 参数提取
  * @param {Record<string, any>} data 数据
- * @param {Array} arr 数据key
+ * @param {Array} keys 数据key
  */
-export function filterParams(data: Record<string, any>, arr: any[]) {
-  const obj: any = {};
-  arr.forEach(key => {
+export function filterParams(data: Record<string, any>, keys: string[]) {
+  const obj: Record<string, any> = {};
+  keys.forEach(key => {
     if (data[key] !== undefined) {
       obj[key] = data[key];
     }
@@ -299,20 +240,23 @@ export function filterParams(data: Record<string, any>, arr: any[]) {
 
 /**
  * 渲染模版字符串
- *
- * render("{{name}}很厉害，才{{age}}岁", { name: "yourtion", age: "15" })
- *
  * @param {String} template 模版字符串
  * @param {Record<string, any>} context 替换对象
+ *
+ * @example
+ *
+ * render("{{name}}很厉害，才{{age}}岁", { name: "yourtion", age: "15" })
+ * // => yourtion很厉害，才15岁
+ *
  */
 export function render(template: string, context: Record<string, any>) {
-  return template.replace(/\{\{(.*?)\}\}/g, (match, key) => context[key]);
+  return template.replace(/\{\{(.*?)\}\}/g, (_, key) => context[key]);
 }
 
 const RATE = Symbol("RATE");
 const START = Symbol("START");
 const END = Symbol("END");
-export interface IGift extends Record<string, any> {
+export interface IGift extends Record<string | symbol, any> {
   [RATE]: number;
   [START]: number;
   [END]: number;
@@ -323,14 +267,7 @@ export function lottory<T extends Record<string, any>>(gifts: T[], key = "rate")
   const arr: Array<IGift & T> = [];
   let total = 0;
   gifts.forEach(gift => {
-    const newGift = Object.assign(
-      {
-        [START]: total,
-        [RATE]: gift[key],
-        [END]: total,
-      },
-      gift
-    );
+    const newGift = Object.assign({ [START]: total, [RATE]: gift[key], [END]: total }, gift);
     total += gift[key];
     newGift[END] = total;
     arr.push(newGift);
