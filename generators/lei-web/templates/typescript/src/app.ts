@@ -2,10 +2,10 @@
  * @file app 入口文件
  */
 
-import { component, Connect, Router } from "./web";
+import { component, Application, Router } from "./web";
 import { resolve } from "path";
 
-const app = new Connect();
+const app = new Application();
 const router = new Router();
 
 import apiService from "./api";

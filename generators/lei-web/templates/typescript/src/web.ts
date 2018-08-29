@@ -7,7 +7,7 @@ export * from "@leizm/web";
 
 export type MiddlewareHandle = (ctx: Context, err?: base.ErrorReason) => Promise<void> | void;
 
-export class Connect extends base.Connect<Context> {
+export class Application extends base.Application<Context> {
   protected contextConstructor = Context;
 }
 
