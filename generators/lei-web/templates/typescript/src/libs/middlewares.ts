@@ -3,7 +3,7 @@
  * @author Yourtion Guo <yourtion@gmail.com>
  */
 import { Context, component } from "../web";
-import { redis, config, errors } from "../global";
+import { newRedis, config, errors } from "../global";
 import { MiddlewareHandle } from "@leizm/web";
 
 export interface IXLSXRes {
@@ -19,7 +19,7 @@ const xlsx = require("node-xlsx") as xlsx;
 
 const redisSession = component.session({
   store: new component.SessiionRedisStore({
-    client: redis as any,
+    client: newRedis() as any,
     prefix: config.redisKey,
   }),
   maxAge: config.cookieMaxAge,
@@ -34,7 +34,7 @@ export function parseExcelFile() {
   function parseExcel(ctx: Context) {
     const file = ctx.request.files.file;
     if (!file) throw new errors.MissingParameter("缺少文件");
-    const extName = file && file.originalName && file.originalName.split(".").pop();
+    const extName = file.originalName && file.originalName.split(".").pop();
     if (!extName || ["xls", "xlsx"].indexOf(extName) === -1) {
       throw new errors.InvalidParameter("文件类型错误");
     }

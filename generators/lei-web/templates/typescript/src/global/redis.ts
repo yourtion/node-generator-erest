@@ -11,6 +11,10 @@ const logger = getLogger("redis");
 
 export const redis = config.redis && new Redis(config.redis);
 
+export function newRedis(conf = config.redis) {
+  return new Redis(conf);
+}
+
 if (redis) {
   redis.on("error", err => logger.error(err));
 
@@ -18,3 +22,4 @@ if (redis) {
     logger.debug("Redis connected");
   });
 }
+

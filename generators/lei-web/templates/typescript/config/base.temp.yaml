@@ -1,7 +1,7 @@
 tablePrefix: "<%= projectNameShort %>_"
 cookieMaxAge: 604800000 # 默认 cookies 时间 (7day)
 sessionSecret: "<%= sessionSecret %>" # session 密钥
-sessionPrefix: "<%= projectNameShort %>:" # session 前缀
+sessionPrefix: "sess:" # session 前缀
 saltRounds: 10 # 密码加盐长度
 loggerDebug: true
 redisKey: "<%= projectNameShort %>"

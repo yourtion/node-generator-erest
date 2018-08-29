@@ -37,11 +37,11 @@ loadConfigFileSync(env);
 // 如果配置文件config/$env.$NODE_APP_INSTANCE.yaml存在，则同时加载它
 const appInstance = process.env.NODE_APP_INSTANCE;
 if (appInstance) {
-  const file2 = getConfigPath(`${env}.${appInstance}`);
+  const name = `${env}.${appInstance}`;
+  const file2 = getConfigPath(name);
   if (fs.existsSync(file2)) {
-    // tslint:disable-next-line no-console
-    console.trace("当前服务进程通过PM2启动[序号#%s]，加载额外配置文件：%s", appInstance, file2);
-    loadConfigFileSync(file2);
+    console.log("当前服务进程通过PM2启动[序号#%s]，加载额外配置文件：%s", appInstance, file2);
+    loadConfigFileSync(name);
   }
 }
 
