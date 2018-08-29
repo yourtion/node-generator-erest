@@ -22,4 +22,3 @@ if (redis) {
     logger.debug("Redis connected");
   });
 }
-
