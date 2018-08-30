@@ -40,8 +40,13 @@ function toInterface(obj, name) {
       if (Array.isArray(obj[k])) {
         console.log(name);
         if (name === "config") {
-          res.push(`  ${k}: I${firstUpperCase(k)}[];`);
-          toInterface(obj[k][0], k);
+          const t = typeof obj[k][0];
+          if (t === "object") {
+            res.push(`  ${k}: I${firstUpperCase(k)}[];`);
+            toInterface(obj[k][0], k);
+          } else {
+            res.push(`  ${k}:${t}[]`);
+          }
         } else {
           res.push(`  ${k} : ${typeof obj[k][0]}[];`);
         }
