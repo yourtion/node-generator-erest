@@ -20,7 +20,7 @@ import { prettierSaveFile } from "./utils";
 function genIt(api: string, method: string, input: Record<string, any>, desc: string) {
   return `
   it('${desc}', async () => {
-    const ret = await agent.${method}(\`/api${api.replace(/:(\w+)/, '${share.$1}')}\`)
+    const ret = await agent.${method}(\`/api${api.replace(/:(\w+)/, "${share.$1}")}\`)
       .input(${util.inspect(input, false, 2).replace(/'/g, "")})
       .takeExample('${desc}')
       .success();
