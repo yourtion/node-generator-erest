@@ -36,7 +36,7 @@ module.exports = class extends Generator {
         projectName: this.prop.name,
         target: this.prop.target,
       };
-      for (const dis of ['src', 'test', 'scripts']) {
+      for (const dis of ['bin', 'src', 'test', 'scripts']) {
         this.fs.copy(this.templatePath(`typescript/${dis}`), this.destinationPath(dis));
       }
       this.fs.copy(this.templatePath('typescript/.prettierrc.js'), this.destinationPath('.prettierrc.js'));
