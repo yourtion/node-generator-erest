@@ -3,10 +3,7 @@
  * @author Yourtion Guo <yourtion@gmail.com>
  */
 
-/* tslint:disable: no-console */
-
 import path from "path";
-require("../src/app");
 
 const FILE_PATH = path.resolve(__dirname, "../src/global/gen");
 import { prettierSaveFile } from "./utils";
@@ -29,17 +26,23 @@ function getModelsPath(name: string) {
 }
 
 async function main() {
+  console.log("start");
+
   const errorsFilePath = FILE_PATH + "/errors.gen.ts";
   await prettierSaveFile(errorsFilePath, genErrorFile(), true);
+  console.log("generated -> errors");
 
   const typeFilePath = FILE_PATH + "/types.gen.ts";
   await prettierSaveFile(typeFilePath, genTypesFile(), true);
+  console.log("generated -> types");
 
   const configFilePath = FILE_PATH + "/config.gen.ts";
   await prettierSaveFile(configFilePath, genConfigFile(), true);
+  console.log("generated -> config");
 
   const paramsFilePath = FILE_PATH + "/params.gen.ts";
   await prettierSaveFile(paramsFilePath, genParams(), true);
+  console.log("generated -> params");
 
   const modelsGenPath = FILE_PATH + "/models.gen.ts";
 
@@ -54,11 +57,13 @@ async function main() {
 
   const modelIndex = getModelsPath("index");
   await prettierSaveFile(modelIndex, indexs.join("\n"), true);
+  console.log("generated -> models");
 
   const services = await genService();
 
   const serviceIndex = path.resolve(__dirname, "../src/services/index.ts");
   await prettierSaveFile(serviceIndex, services.serviceExport, true);
+  console.log("generated -> services");
 
   const coreFilePath = FILE_PATH + "/core.gen.ts";
   await prettierSaveFile(
@@ -69,9 +74,11 @@ async function main() {
     ),
     true
   );
+  console.log("generated -> core");
 
   const apiTestPath = path.resolve(__dirname, "../test/api/api.gen.ts");
   await prettierSaveFile(apiTestPath, genTest(), true);
+  console.log("generated -> tests");
 }
 
 main()
