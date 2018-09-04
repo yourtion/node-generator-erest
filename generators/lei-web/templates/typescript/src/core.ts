@@ -1,4 +1,4 @@
-import { Context } from "./web";
+import { Context, Application } from "./web";
 import { getSqlLogger } from "./global";
 
 /**
@@ -6,8 +6,7 @@ import { getSqlLogger } from "./global";
  */
 export abstract class Core {
   /** 请求上下文 */
-  protected ctx: Context;
-  protected test: boolean = false;
+  protected ctx: Context | Application;
   /** 日志记录 */
   protected get log() {
     return this.ctx.getLogger({ type: this.constructor.name });
@@ -15,7 +14,6 @@ export abstract class Core {
 
   constructor(ctx: Context) {
     this.ctx = ctx;
-    if ((ctx as any).test) this.test = true;
   }
 }
 
@@ -45,8 +43,10 @@ export abstract class CoreGen<T> {
 /** 模型基类 */
 export abstract class BaseModel extends Core {
   protected get log() {
-    if (this.test) return getSqlLogger(this.constructor.name);
-    return getSqlLogger(this.ctx.request.path, { reqId: this.ctx.$reqId, type: this.constructor.name });
+    if (this.ctx instanceof Context) {
+      return getSqlLogger(this.ctx.request.path, { reqId: this.ctx.$reqId, type: this.constructor.name });
+    }
+    return getSqlLogger(this.constructor.name);
   }
 }
 

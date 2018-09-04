@@ -9,6 +9,14 @@ export type MiddlewareHandle = (ctx: Context, err?: base.ErrorReason) => Promise
 
 export class Application extends base.Application<Context> {
   protected contextConstructor = Context;
+  /** 获取日志实例 */
+  public getLogger(opt: Record<string, any>) {
+    return getLogger("app", opt);
+  }
+  /** 服务 */
+  public service = new Service(this);
+  /** 模型 */
+  public model = new Model(this);
 }
 
 export class Router extends base.Router<Context> {
