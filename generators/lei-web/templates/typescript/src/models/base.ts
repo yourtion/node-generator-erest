@@ -19,6 +19,7 @@ export interface IPageResult<T> {
 
 export type IConditions = Record<string, number | string | string[]>;
 export type IPrimary = string | number;
+export type Orders = Array<[string, boolean]>;
 
 /** 联表查询 */
 export interface IJoinTable {
@@ -89,7 +90,6 @@ function _parseWhere(sql: Select, conditions: Record<string, any>, alias?: strin
   });
 }
 
-export type Orders = Array<[string, boolean]>;
 
 /** 初始化参数 */
 export interface IBaseOptions {

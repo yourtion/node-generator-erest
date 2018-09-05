@@ -13,6 +13,8 @@ export class Application extends base.Application<Context> {
   public getLogger(opt: Record<string, any>) {
     return getLogger("app", opt);
   }
+  /** 错误信息 */
+  public errors = errors;
   /** 服务 */
   public service = new Service(this);
   /** 模型 */
