@@ -90,7 +90,6 @@ function _parseWhere(sql: Select, conditions: Record<string, any>, alias?: strin
   });
 }
 
-
 /** 初始化参数 */
 export interface IBaseOptions {
   /** 表前缀 */

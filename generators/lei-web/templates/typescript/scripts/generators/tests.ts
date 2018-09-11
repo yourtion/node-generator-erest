@@ -17,12 +17,11 @@ function genIt(key: string, method: string, desc: string, params: string[]) {
   const inte = `IParams${n}`;
   // const schema = {};
   interfaces.push(inte);
+  const path = key.substring(key.indexOf("_") + 1).replace(/:(\w+)/, "${input!.$1}");
   return `
   /** ${desc} */
   ${name}Raw(input?: ${inte}, example?: string) {
-    return this.${method}(\`/api${key
-    .split("_")[1]
-    .replace(/:(\w+)/, "${input!.$1}")}\`, input, example, ${JSON.stringify(params)});
+    return this.${method}(\`/api${path}\`, input, example, ${JSON.stringify(params)});
   }
   /** ${desc}（成功） */
   ${name}Ok(input?: ${inte}, example?: string) {
