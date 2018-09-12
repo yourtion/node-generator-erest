@@ -73,6 +73,12 @@ exports.prompts = function prompts() {
       },
     },
     {
+      type: 'confirm',
+      name: 'nyc',
+      message: 'use nyc for test coverage ?',
+      default: false,
+    },
+    {
       type: 'list',
       name: 'target',
       default: 'esnext',
@@ -113,4 +119,18 @@ exports.genPackage = (base, addtion) => {
     pkg.homepage = `https://${addtion.repo}#readme`;
   }
   return pkg;
+};
+
+exports.nycInfo = {
+  all: true,
+  extension: ['.ts'],
+  include: ['src' ],
+  reporter: ['html', 'text', 'text-summary'],
+  exclude: [
+    'src/models/base.ts',
+    'src/index.ts',
+    'src/global',
+    '**/*.d.ts',
+    '**/*.gen.ts',
+  ],
 };

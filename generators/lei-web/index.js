@@ -1,6 +1,6 @@
 const Generator = require('yeoman-generator');
 
-const { prompts, genPackage } = require('./npm');
+const { prompts, genPackage, nycInfo } = require('./npm');
 const utils = require('../../utils/utils');
 const config = require('./config');
 
@@ -9,6 +9,7 @@ module.exports = class extends Generator {
     super(args, opts);
     this.isTS = false;
     this.isJS = false;
+    this.isCov = false;
     this.lang = '';
     this.prop = {};
   }
@@ -16,6 +17,7 @@ module.exports = class extends Generator {
   prompting() {
     return this.prompt(prompts.call(this)).then(prop => {
       this.prop = prop;
+      this.isCov = this.prop.nyc;
       this.lang = this.prop.language.toLocaleLowerCase();
       this.isTS = this.prop.language === 'TypeScript';
       this.isJS = this.prop.language === 'JavaScript';
@@ -26,6 +28,10 @@ module.exports = class extends Generator {
   writing() {
     this.fs.copy(this.templatePath('gitignore'), this.destinationPath('.gitignore'));
     const packageInfo = this.fs.readJSON(this.templatePath(this.lang + '/package.json'));
+    if(this.isCov) {
+      packageInfo.nyc = nycInfo;
+      packageInfo.scripts['test-cov'] = 'export NODE_ENV=test && nyc mocha test/api/test-*.ts';
+    }
     this.fs.extendJSON(this.destinationPath('package.json'), genPackage(packageInfo, this.prop));
     if (this.isTS) {
       const info = {
@@ -52,13 +58,17 @@ module.exports = class extends Generator {
   }
 
   install() {
+    const registry = 'https://registry.npm.taobao.org';
     if (this.isTS) {
-      this.npmInstall(config.getTSDeps(), { save: true, registry: 'https://registry.npm.taobao.org' });
-      this.npmInstall(config.getTSDevDeps(), { 'save-dev': true, registry: 'https://registry.npm.taobao.org' });
+      this.npmInstall(config.getTSDeps(), { save: true, registry });
+      this.npmInstall(config.getTSDevDeps(), { 'save-dev': true, registry });
+      if(this.isCov) {
+        this.npmInstall(['source-map-support', 'nyc'], { 'save-dev': true, registry });
+      }
     }
     if (this.isJS) {
-      this.npmInstall(config.getJSDeps(), { save: true, registry: 'https://registry.npm.taobao.org' });
-      this.npmInstall(config.getJSDevDeps(), { 'save-dev': true, registry: 'https://registry.npm.taobao.org' });
+      this.npmInstall(config.getJSDeps(), { save: true, registry });
+      this.npmInstall(config.getJSDevDeps(), { 'save-dev': true, registry });
     }
     utils.mkdirSync(this.destinationPath('logs'));
     utils.mkdirSync(this.destinationPath('src', 'controllers'));
