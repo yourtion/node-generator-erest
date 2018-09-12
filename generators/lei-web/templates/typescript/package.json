@@ -4,7 +4,7 @@
     "tnpm": "npm i --registry=https://registry.npm.taobao.org",
     "start": "ts-node src/index.ts",
     "dev": "nodemon -e ts -x ts-node src/index.ts",
-    "test": "export NODE_ENV=test && mocha -r ts-node/register test/api/test-*.ts --exit",
+    "test": "export NODE_ENV=test && mocha -b -r ts-node/register test/api/test-*.ts --exit",
     "test-cov": "export NODE_ENV=test && nyc mocha",
     "docs": "cd docs && git add . && git commit && git push",
     "format": "prettier --write {src,scripts,test}/**/*.ts",
