@@ -17,6 +17,7 @@ function getServiceExport(files: string[]) {
   for (const f of files) {
     res.push(`export * from "./${f}";`);
   }
+  if (res.length === 1) res.push("export default {};");
   return res.join("\n");
 }
 
@@ -56,7 +57,7 @@ export async function genService() {
       }
     }
   }
-  const serviceImport = `import { ${services.join(", ")} } from "../../services";`;
+  const serviceImport = services.length > 0 ? `import { ${services.join(", ")} } from "../../services";` : "";
   const serviceExport = getServiceExport(files);
   return { files, services, serviceGen, symbols, serviceImport, serviceExport };
 }

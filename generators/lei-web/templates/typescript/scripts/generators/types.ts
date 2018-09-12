@@ -1,13 +1,13 @@
 import apiService from "../../src/api";
 
-function genTypeString(type) {
+function genTypeString(key, type) {
   return ` /** ${type.description} */
-${type.name}: "${type.name}",`;
+${key}: "${key}",`;
 }
 
 export function genTypesFile() {
   const res = ["export const TYPES = {"];
-  apiService.type.forEach(value => res.push(genTypeString(value)));
+  apiService.type.forEach((value, key) => res.push(genTypeString(key, value.info)));
   res.push("};");
   return res.join("\n");
 }

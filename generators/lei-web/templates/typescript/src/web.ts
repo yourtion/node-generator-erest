@@ -13,6 +13,8 @@ export class Application extends base.Application<Context> {
   public getLogger(opt: Record<string, any>) {
     return getLogger("app", opt);
   }
+  /** 配置信息 */
+  public config = config;
   /** 错误信息 */
   public errors = errors;
   /** 服务 */
@@ -31,6 +33,8 @@ export class Context extends base.Context<Request, Response> {
 
   /** 请求ID */
   public $reqId = "";
+  /** 配置信息 */
+  public config = config;
   /** 错误信息 */
   public errors = errors;
   /** 服务 */
