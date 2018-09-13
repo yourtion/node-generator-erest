@@ -28,7 +28,7 @@ module.exports = class extends Generator {
   writing() {
     this.fs.copy(this.templatePath('gitignore'), this.destinationPath('.gitignore'));
     const packageInfo = this.fs.readJSON(this.templatePath(this.lang + '/package.json'));
-    if(this.isCov) {
+    if (this.isCov) {
       packageInfo.nyc = nycInfo;
       packageInfo.scripts['test-cov'] = 'export NODE_ENV=test && nyc mocha test/api/test-*.ts';
     }
@@ -62,7 +62,7 @@ module.exports = class extends Generator {
     if (this.isTS) {
       this.npmInstall(config.getTSDeps(), { save: true, registry });
       this.npmInstall(config.getTSDevDeps(), { 'save-dev': true, registry });
-      if(this.isCov) {
+      if (this.isCov) {
         this.npmInstall(['source-map-support', 'nyc'], { 'save-dev': true, registry });
       }
     }

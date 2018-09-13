@@ -124,13 +124,7 @@ exports.genPackage = (base, addtion) => {
 exports.nycInfo = {
   all: true,
   extension: ['.ts'],
-  include: ['src' ],
+  include: ['src'],
   reporter: ['html', 'text', 'text-summary'],
-  exclude: [
-    'src/models/base.ts',
-    'src/index.ts',
-    'src/global',
-    '**/*.d.ts',
-    '**/*.gen.ts',
-  ],
+  exclude: ['src/models/base.ts', 'src/index.ts', 'src/global', '**/*.d.ts', '**/*.gen.ts'],
 };
