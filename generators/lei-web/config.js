@@ -27,11 +27,11 @@ const devDependencies = ['chai', 'debug', 'mocha', 'prettier', 'supertest', 'ts-
 const devDependenciesTS = ['@types/chai', '@types/mocha', '@types/prettier'];
 
 exports.getTSDeps = () => {
-  return [].concat(dependencies, dependenciesTS);
+  return [].concat(dependencies);
 };
 
 exports.getTSDevDeps = () => {
-  return [].concat(devDependencies, devDependenciesTS);
+  return [].concat(devDependencies, dependenciesTS, devDependenciesTS);
 };
 
 exports.getJSDeps = () => {
