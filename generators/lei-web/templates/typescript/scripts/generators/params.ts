@@ -4,8 +4,8 @@ import { firstUpperCase, underscore2camelCase } from "../../src/global/base/util
 
 function schemaToInterface(name: string, schema: ISchemaType, isRequired = false) {
   const required = schema.required || isRequired;
-  const type = apiService.type.get(schema.type).info;
-  let teType = type.tsType || "any";
+  const type = apiService.type.get(schema.type);
+  let teType = type.info.tsType || "any";
   const res = [];
   if (schema.comment) {
     res.push(`/** ${schema.comment} */`);

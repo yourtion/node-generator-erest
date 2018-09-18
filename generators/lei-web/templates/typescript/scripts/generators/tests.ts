@@ -34,7 +34,8 @@ function genIt(key: string, method: string, desc: string, params: string[]) {
   /** ${desc} (检查参数) */
   async ${name}Verify(input?: ${inte}, example?: string) {
     const ret = await this.${name}Ok(input, example);
-    const schema = this.api.api.$apis.get("${key}")!.options.response
+    const opt = this.api.api.$apis.get("${key}")!.options;
+    const schema = opt.responseSchema || opt.response;
     return this.verifyOutput(ret, schema);
   }
 `;
