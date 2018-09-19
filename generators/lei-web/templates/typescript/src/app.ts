@@ -26,7 +26,7 @@ router.use(
     allowHeaders: ["Content-Type", "Content-Length", "Authorization", "Accept", "X-Requested-With", "Cookie"],
   })
 );
-router.use("/", ctx => {
+router.use("/", function(ctx) {
   if (ctx.request.method && ctx.request.method.toUpperCase() === "OPTIONS") {
     ctx.response.setStatus(200);
     ctx.response.end();
@@ -35,8 +35,7 @@ router.use("/", ctx => {
   }
 });
 
-router.use("/", component.bodyParser.json());
-router.use("/", component.bodyParser.urlencoded({ extended: true }));
+router.use("/", component.jsonParser());
 
 require("./routers");
 apiService.bindRouterToApp(router, Router, apiService.checkerLeiWeb);

@@ -13,10 +13,10 @@ export class Application extends base.Application<Context> {
   public getLogger(opt: Record<string, any>) {
     return getLogger("app", opt);
   }
-  /** 配置信息 */
-  public config = config;
   /** 错误信息 */
   public errors = errors;
+  /** 配置 */
+  public config = config;
   /** 服务 */
   public service = new Service(this);
   /** 模型 */
@@ -33,10 +33,10 @@ export class Context extends base.Context<Request, Response> {
 
   /** 请求ID */
   public $reqId = "";
-  /** 配置信息 */
-  public config = config;
   /** 错误信息 */
   public errors = errors;
+  /** 配置 */
+  public config = config;
   /** 服务 */
   public service = new Service(this);
   /** 模型 */
@@ -112,6 +112,7 @@ export class Response extends base.Response {
   /** 返回成功分页数据 */
   public page(data: IPageResult<any>) {
     this.ok({
+      ...data,
       page_data: {
         page: (this.ctx.request as Request).$pages.page,
         page_count: (this.ctx.request as Request).$pages.limit,
@@ -119,18 +120,5 @@ export class Response extends base.Response {
       },
       list: data.list || [],
     });
-  }
-  /**
-   * 返回文件下载
-   * @param filename 文件名
-   * @param filetype 文件类型（后缀）
-   * @param buffer 文件内容
-   */
-  public files(filename: string, filetype: string, buffer: Buffer) {
-    this.type(filetype);
-    this.setHeader("Content-Description", "File Transfer");
-    this.setHeader("Content-Disposition", `attachment; filename=${filename}.${filetype}`);
-    this.setHeader("Content-Length", String(buffer.length));
-    this.end(buffer);
   }
 }
