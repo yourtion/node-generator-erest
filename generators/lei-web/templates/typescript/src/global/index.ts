@@ -14,5 +14,5 @@ export * from "./gen/models.gen";
 export * from "./gen/params.gen";
 export * from "./gen/core.gen";
 
-import sequelLib from "squel";
+import sequelLib from "@blueshit/squel";
 export const squel = sequelLib.useFlavour("mysql");

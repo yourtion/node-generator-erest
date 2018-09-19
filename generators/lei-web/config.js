@@ -6,7 +6,7 @@ const dependencies = [
   'mysql',
   'pino',
   'pino-pretty',
-  'squel',
+  '@blueshit/squel',
   'uuid',
   'js-yaml',
 ];
