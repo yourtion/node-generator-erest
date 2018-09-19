@@ -29,22 +29,7 @@ export function md5(str: string) {
     .digest("hex");
 }
 
-/**
- * 获取客户端IP
- *
- * @param {Object} req 请求
- * @returns {String} ip
- */
-export function getClientIP(req: any) {
-  const ip = req.headers["x-real-ip"] || req.headers["x-forwarded-for"] || req.ip;
-  return ip.match(/\d+\.\d+\.\d+\.\d+/)[0];
-}
-
-/**
- * 转换 Unix 时间戳到 MySQL
- * @param {Number} unixtime Unix 时间戳
- * @return {String}
- */
+/* 转换 Unix 时间戳到 MySQL */
 export function unixTime(unixtime: number) {
   const u = new Date(unixtime);
   return (
@@ -64,18 +49,12 @@ export function unixTime(unixtime: number) {
   );
 }
 
-/**
- * 时间字符串（20180427）
- * @param {Date} date 时间
- * @return {String}
- */
+/** 时间字符串（20180427） */
 export function dateString(date = new Date()) {
   return getDateString("", date);
 }
 
-/**
- * 获取中文字符串（2018年04月27日 16:42）
- */
+/** 获取中文字符串（2018年04月27日 16:42） */
 export function dateTimeChinese(date = new Date()) {
   return (
     date.getFullYear() +
@@ -90,17 +69,14 @@ export function dateTimeChinese(date = new Date()) {
   );
 }
 
-/**
- * 生成随机数（系统调用）
- * @param {Number} num 数量
- */
+/** 生成随机数（系统调用） */
 export function randomString(num: number) {
   return randomBytes(num)
     .toString("hex")
     .substr(0, num);
 }
 
-/**返回随机字符串 */
+/** 返回随机字符串 */
 export function createNonceStr(length: number) {
   const str = [];
   for (let i = 0; i < length; i++) {
@@ -109,9 +85,7 @@ export function createNonceStr(length: number) {
   return str.join("");
 }
 
-/**
- * 返回随机数字
- */
+/** 返回随机数字 */
 export function createNonceNum(length: number) {
   const str = [];
   for (let i = 0; i < length; i++) {
@@ -120,45 +94,28 @@ export function createNonceNum(length: number) {
   return str.join("");
 }
 
-/**
- * 获取 timestamp
- *
- * @param {Number} [after=0] 当前时间之后的秒数
- * @returns {Number}
- */
+/** 获取 timestamp */
 export function genTimestamp(after = 0) {
   const now = new Date();
   return parseInt(String((now.getTime() + after * 1000) / 1000), 10);
 }
 
-/**
- * 获取日期字符串
- */
+/** 获取日期字符串 */
 export function getDateString(pad = "", time = new Date()) {
   return `${time.getFullYear()}${pad}${leftPad(time.getMonth() + 1, 2)}${pad}${leftPad(time.getDate(), 2)}`;
 }
 
-/**
- * 获取时间字符串
- */
+/** 获取时间字符串 */
 export function getTimeString(pad = "", time = new Date()) {
   return `${time.getHours()}${pad}${leftPad(time.getMinutes(), 2)}${pad}${leftPad(time.getSeconds(), 2)}`;
 }
 
-/**
- * 获取日期时间字符串
- */
+/** 获取日期时间字符串 */
 export function getDateTimeString(pad = "", time = new Date()) {
   return `${getDateString("-", time)} ${getTimeString(":", time)}`;
 }
 
-/**
- * 格式化请求中的 Boolean 类型
- *
- * @param {any} query 请求参数
- * @param {Boolean} b 默认值
- * @returns {Boolean}
- */
+/** 格式化请求中的 Boolean 类型 */
 export function parseQueryBoolean(query: any, b: boolean) {
   const str = String(query);
   if (str === "1" || str === "true" || str === "yes" || str === "on") {
@@ -169,9 +126,7 @@ export function parseQueryBoolean(query: any, b: boolean) {
   return b;
 }
 
-/**
- * 删除对象中的 undefined
- */
+/** 删除对象中的 undefined */
 export function removeUndefined(object: any) {
   Object.keys(object).forEach(key => object[key] === undefined && delete object[key]);
   return object;
@@ -216,9 +171,7 @@ export function underscore2camelCase(str: string) {
  */
 export function checkParams(data: Record<string, any>, keys: string[]) {
   for (const key of keys) {
-    if (data[key] === undefined) {
-      return `"${key}" is required`;
-    }
+    if (data[key] === undefined) return `"${key}" is required`;
   }
   return false;
 }
@@ -231,9 +184,7 @@ export function checkParams(data: Record<string, any>, keys: string[]) {
 export function filterParams(data: Record<string, any>, keys: string[]) {
   const obj: Record<string, any> = {};
   keys.forEach(key => {
-    if (data[key] !== undefined) {
-      obj[key] = data[key];
-    }
+    if (data[key] !== undefined)  obj[key] = data[key];
   });
   return obj;
 }
@@ -279,6 +230,21 @@ export function lottory<T extends Record<string, any>>(gifts: T[], key = "rate")
     }
   }
   return null;
+}
+
+/** 今天的日期整数表示：20180913 */
+export function getDateNumber(date = new Date()): number {
+  const y = date.getFullYear();
+  const m = date.getMonth() + 1;
+  const d = date.getDate();
+  return Number(y + (m < 10 ? "0" : "") + m + (d < 10 ? "0" : "") + d);
+}
+
+/** 等待函数 */
+export function sleep(ms: number) {
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
 }
 
 export const existsAsync = promisify(exists);

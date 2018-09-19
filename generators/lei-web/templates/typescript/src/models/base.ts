@@ -2,7 +2,7 @@
  * @file base model 基础模块
  * @author Yourtion Guo <yourtion@gmail.com>
  */
-import { Delete, Insert, MysqlInsert, QueryBuilder, Select, Update } from "squel";
+import { Delete, Insert, MysqlInsert, QueryBuilder, Select, Update, QueryBuilderOptions } from "@blueshit/squel";
 import { config, errors, IConnectionPromise, mysql, squel, utils } from "../global";
 import { IPageParams, IPoolPromise } from "../global";
 import { BaseModel } from "../core";
@@ -17,9 +17,20 @@ export interface IPageResult<T> {
   list: T[];
 }
 
-export type IConditions = Record<string, number | string | string[]>;
+export type IRecord<K> = Record<string, any> & Partial<K>;
+export type IConditions<K> = Record<string, number | string | string[]> & Partial<K>;
 export type IPrimary = string | number;
 export type Orders = Array<[string, boolean]>;
+export interface OkPacket {
+  fieldCount: number;
+  affectedRows: number;
+  insertId: number;
+  serverStatus: number;
+  warningCount: number;
+  message: string;
+  protocol41: true;
+  changedRows: number;
+}
 
 /** 联表查询 */
 export interface IJoinTable {
@@ -148,6 +159,38 @@ export default class Base<T> extends BaseModel {
     }
   }
 
+  /** delete 构造 */
+  buildDelete(opt?: QueryBuilderOptions) {
+    return squel
+      .delete(opt)
+      .from(this.table)
+      .clone();
+  }
+
+  /** insert 构造 */
+  buildInsert(opt?: QueryBuilderOptions) {
+    return squel
+      .insert(opt)
+      .into(this.table)
+      .clone();
+  }
+
+  /** select 构造 */
+  buildSelect(opt?: QueryBuilderOptions) {
+    return squel
+      .select(opt)
+      .from(this.table)
+      .clone();
+  }
+
+  /** update 构造 */
+  buildUpdate(opt?: QueryBuilderOptions) {
+    return squel
+      .update(opt)
+      .table(this.table)
+      .clone();
+  }
+
   /**
    * 输出 SQL Debug
    * @param {String} name Debug 前缀
@@ -181,7 +224,7 @@ export default class Base<T> extends BaseModel {
     return this.query("TRUNCATE TABLE `" + this.table + "`;");
   }
 
-  public _count(conditions: IConditions = {}) {
+  public _count(conditions: IConditions<T> = {}) {
     const sql = squel
       .select()
       .from(this.table)
@@ -190,14 +233,14 @@ export default class Base<T> extends BaseModel {
     return sql;
   }
 
-  public countRaw(connect: IConnectionPromise | IPoolPromise, conditions: IConditions = {}): Promise<number> {
+  public countRaw(connect: IConnectionPromise | IPoolPromise, conditions: IConditions<T> = {}): Promise<number> {
     return this.query(this._count(conditions), connect).then((res: any) => res && res[0] && res[0].c);
   }
 
   /**
    * 计算数据表 count
    */
-  public count(conditions: IConditions = {}) {
+  public count(conditions: IConditions<T> = {}) {
     return this.countRaw(this.connect, conditions);
   }
 
@@ -229,7 +272,7 @@ export default class Base<T> extends BaseModel {
     return this.getByPrimaryRaw(this.connect, primary, fields);
   }
 
-  public _getOneByField(object: Record<string, any> = {}, fields = this.fields) {
+  public _getOneByField(object: IRecord<T> = {}, fields = this.fields) {
     const sql = squel
       .select(SELETE_OPT)
       .from(this.table)
@@ -241,7 +284,7 @@ export default class Base<T> extends BaseModel {
 
   public getOneByFieldRaw(
     connect: IConnectionPromise | IPoolPromise,
-    object: Record<string, any> = {},
+    object: IRecord<T> = {},
     fields = this.fields
   ): Promise<T> {
     return this.query(this._getOneByField(object, fields), connect).then((res: T[]) => res && res[0]);
@@ -250,7 +293,7 @@ export default class Base<T> extends BaseModel {
   /**
    * 根据查询条件获取一条记录
    */
-  public getOneByField(object: Record<string, any> = {}, fields = this.fields) {
+  public getOneByField(object: IRecord<T> = {}, fields = this.fields) {
     return this.getOneByFieldRaw(this.connect, object, fields);
   }
 
@@ -266,7 +309,7 @@ export default class Base<T> extends BaseModel {
   }
 
   public deleteByPrimaryRaw(connect: IConnectionPromise | IPoolPromise, primary: IPrimary, limit = 1): Promise<number> {
-    return this.query(this._deleteByPrimary(primary, limit), connect).then((res: any) => res && res.affectedRows);
+    return this.query(this._deleteByPrimary(primary, limit), connect).then((res: OkPacket) => res && res.affectedRows);
   }
 
   /**
@@ -276,7 +319,7 @@ export default class Base<T> extends BaseModel {
     return this.deleteByPrimaryRaw(this.connect, primary, limit);
   }
 
-  public _deleteByField(conditions: IConditions, limit = 1) {
+  public _deleteByField(conditions: IConditions<T>, limit = 1) {
     const sql = squel
       .delete()
       .from(this.table)
@@ -289,10 +332,10 @@ export default class Base<T> extends BaseModel {
 
   public deleteByFieldRaw(
     connect: IConnectionPromise | IPoolPromise,
-    conditions: IConditions,
+    conditions: IConditions<T>,
     limit = 1
   ): Promise<number> {
-    return this.query(this._deleteByField(conditions, limit), connect).then((res: any) => res && res.affectedRows);
+    return this.query(this._deleteByField(conditions, limit), connect).then((res: OkPacket) => res && res.affectedRows);
   }
 
   /**
@@ -301,7 +344,7 @@ export default class Base<T> extends BaseModel {
    * @param {Object} [object={}] 字段、值对象
    * @param {Number} [limit=1] 删除条数
    */
-  public deleteByField(conditions: IConditions, limit = 1) {
+  public deleteByField(conditions: IConditions<T>, limit = 1) {
     return this.deleteByFieldRaw(this.connect, conditions, limit);
   }
 
@@ -311,11 +354,11 @@ export default class Base<T> extends BaseModel {
    * @param {Object} [object={}] 字段、值对象
    * @param {Array} [fields=this.fields] 所需要的列数组
    */
-  public getByField(conditions: IConditions = {}, fields = this.fields): Promise<T[]> {
+  public getByField(conditions: IConditions<T> = {}, fields = this.fields): Promise<T[]> {
     return this.list(conditions, fields, 999);
   }
 
-  public _insert(object: Record<string, any> = {}) {
+  public _insert(object: Partial<T> = {}) {
     removeUndefined(object);
     return squel
       .insert()
@@ -323,18 +366,18 @@ export default class Base<T> extends BaseModel {
       .setFields(object);
   }
 
-  public insertRaw(connect: IConnectionPromise | IPoolPromise, object: Record<string, any> = {}) {
+  public insertRaw(connect: IConnectionPromise | IPoolPromise, object: Partial<T> = {}): Promise<OkPacket> {
     return this.query(this._insert(object), connect);
   }
 
   /**
    * 插入一条数据
    */
-  public insert(object: Record<string, any> = {}) {
+  public insert(object: Partial<T> = {}) {
     return this.insertRaw(this.connect, object);
   }
 
-  public _batchInsert(array: Record<string, any>[]) {
+  public _batchInsert(array: Partial<T>[]) {
     array.forEach(o => removeUndefined(o));
     return squel
       .insert()
@@ -342,14 +385,18 @@ export default class Base<T> extends BaseModel {
       .setFieldsRows(array);
   }
 
+  public batchInsertRaw(connect: IConnectionPromise | IPoolPromise, array: Partial<T>[]) {
+    return this.query(this._batchInsert(array), connect).then((res: OkPacket) => res && res.affectedRows);
+  }
+
   /**
    * 批量插入数据
    */
-  public batchInsert(array: Record<string, any>[]) {
-    return this.query(this._batchInsert(array));
+  public batchInsert(array: Partial<T>[]) {
+    return this.batchInsertRaw(this.connect, array);
   }
 
-  public _updateByField(conditions: IConditions, objects: Record<string, any>, raw = false) {
+  public _updateByField(conditions: IConditions<T>, objects: IRecord<T>, raw = false) {
     if (!conditions || Object.keys(conditions).length < 1) {
       throw new Error("`key` 不能为空");
     }
@@ -383,35 +430,35 @@ export default class Base<T> extends BaseModel {
 
   public updateByFieldRaw(
     connect: IConnectionPromise | IPoolPromise,
-    conditions: IConditions,
-    objects: Record<string, any>,
+    conditions: IConditions<T>,
+    objects: IRecord<T>,
     raw = false
-  ): Promise<number> {
+  ) {
     return this.query(this._updateByField(conditions, objects, raw), connect).then(
-      (res: any) => res && res.affectedRows
+      (res: OkPacket) => res && res.affectedRows
     );
   }
 
   /**
    * 根据查询条件更新记录
    */
-  public updateByField(conditions: IConditions, objects: Record<string, any>, raw = false): Promise<number> {
+  public updateByField(conditions: IConditions<T>, objects: IRecord<T>, raw = false) {
     return this.updateByFieldRaw(this.connect, conditions, objects, raw);
   }
 
   /**
    * 根据主键更新记录
    */
-  public updateByPrimary(primary: IPrimary, objects: Record<string, any>, raw = false): Promise<number> {
+  public updateByPrimary(primary: IPrimary, objects: IRecord<T>, raw = false) {
     if (primary === undefined) {
       throw new Error("`primary` 不能为空");
     }
-    const condition: Record<string, any> = {};
+    const condition: IConditions<T> = {};
     condition[this.primaryKey] = primary;
     return this.updateByField(condition, objects, raw);
   }
 
-  public _createOrUpdate(objects: Record<string, any>, update = Object.keys(objects)) {
+  public _createOrUpdate(objects: IRecord<T>, update = Object.keys(objects)) {
     removeUndefined(objects);
     const sql = squel.insert().into(this.table);
     sql.setFields(objects);
@@ -427,20 +474,20 @@ export default class Base<T> extends BaseModel {
 
   public createOrUpdateRaw(
     connect: IConnectionPromise | IPoolPromise,
-    objects: Record<string, any>,
+    objects: IRecord<T>,
     update = Object.keys(objects)
-  ) {
+  ): Promise<OkPacket> {
     return this.query(this._createOrUpdate(objects, update), connect);
   }
 
   /**
    * 创建一条记录，如果存在就更新
    */
-  public createOrUpdate(objects: Record<string, any>, update = Object.keys(objects)) {
+  public createOrUpdate(objects: IRecord<T>, update = Object.keys(objects)) {
     return this.createOrUpdateRaw(this.connect, objects, update);
   }
 
-  public _incrFields(primary: IPrimary | IPrimary[], fields: Array<string | [string, number]>, num = 1) {
+  public _incrFields(primary: IPrimary | IPrimary[], ...fields: Array<[string, number]>) {
     if (primary === undefined) {
       throw new Error("`primary` 不能为空");
     }
@@ -452,11 +499,7 @@ export default class Base<T> extends BaseModel {
       sql.where(this.primaryKey + " = ?", primary);
     }
     fields.forEach(f => {
-      if (typeof f === "string") {
-        sql.set(`${f} = ${f} + ${num}`);
-      } else {
-        sql.set(`${f[0]} = ${f[0]} + ${f[1]}`);
-      }
+      sql.set(`${f[0]} = ${f[0]} + ${f[1]}`);
     });
     return sql;
   }
@@ -464,21 +507,20 @@ export default class Base<T> extends BaseModel {
   public incrFieldsRaw(
     connect: IConnectionPromise | IPoolPromise,
     primary: IPrimary | IPrimary[],
-    fields: Array<string | [string, number]>,
-    num = 1
+    ...fields: Array<[string, number]>
   ): Promise<number> {
-    return this.query(this._incrFields(primary, fields, num), connect).then((res: any) => res && res.affectedRows);
+    return this.query(this._incrFields(primary, ...fields), connect).then((res: OkPacket) => res && res.affectedRows);
   }
 
   /**
    * 根据主键对数据列执行加一操作
    */
-  public incrFields(primary: IPrimary | IPrimary[], fields: Array<string | [string, number]>, num = 1) {
-    return this.incrFieldsRaw(this.connect, primary, fields, num);
+  public incrFields(primary: IPrimary | IPrimary[], ...fields: Array<[string, number]>) {
+    return this.incrFieldsRaw(this.connect, primary, ...fields);
   }
 
   public _list(
-    conditions: IConditions = {},
+    conditions: IConditions<T> = {},
     fields = this.fields,
     limit = 999,
     offset = 0,
@@ -523,12 +565,12 @@ export default class Base<T> extends BaseModel {
   /**
    * 根据条件获取列表
    */
-  public list(conditions: IConditions, fields?: string[], pages?: IPageParams): Promise<T[]>;
+  public list(conditions: IConditions<T>, fields?: string[], pages?: IPageParams): Promise<T[]>;
   /**
    * 根据条件获取列表
    */
   public list(
-    conditions: IConditions,
+    conditions: IConditions<T>,
     fields?: string[],
     limit?: number,
     offset?: number,
@@ -603,7 +645,7 @@ export default class Base<T> extends BaseModel {
    * 根据条件获取分页内容（比列表多出总数计算）
    */
   public page(
-    conditions: IConditions,
+    conditions: IConditions<T>,
     fields?: string[],
     limit?: number,
     offset?: number,
@@ -613,7 +655,7 @@ export default class Base<T> extends BaseModel {
   /**
    * 根据条件获取分页内容（比列表多出总数计算）
    */
-  public page(conditions: IConditions, fields?: string[], pages?: IPageParams): Promise<IPageResult<T>>;
+  public page(conditions: IConditions<T>, fields?: string[], pages?: IPageParams): Promise<IPageResult<T>>;
   public page(conditions = {}, fields = this.fields, ...args: any[]): Promise<IPageResult<T>> {
     const listSql = this.list(conditions, fields, ...args);
     const countSql = this.count(conditions);
