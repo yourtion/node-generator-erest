@@ -1,17 +1,22 @@
 import { IAgent } from "erest/dist/lib/extend/test";
-import ERest, { SUPPORT_METHODS } from "erest";
+import ERest, { SUPPORT_METHODS, IValueResult, ISchemaCheckResult } from "erest";
 import { ISchemaType } from "erest/dist/lib/params";
-import assert from "assert";
 
 export default class TestAgent<T> {
   protected api: ERest;
-  private agent: IAgent;
+  public agent: IAgent;
   public share: T;
+  public checker: (data: any, schema: Record<string, ISchemaType>) => IValueResult | ISchemaCheckResult;
 
-  constructor(api: ERest, share: T) {
+  constructor(api: ERest, share: T, agent: IAgent = api.test) {
     this.api = api;
-    this.agent = api.test.session();
+    this.agent = agent;
     this.share = share;
+    this.checker = api.responseChecker();
+  }
+
+  public newSession(): this {
+    return new (this.constructor as any)(this.api, this.share, this.api.test.session());
   }
 
   protected request(method: SUPPORT_METHODS, path: string, input?: any, example?: string, params?: string[]) {
@@ -43,27 +48,11 @@ export default class TestAgent<T> {
     return this.request("put", path, input, example, params);
   }
 
-  protected verifyOutput(res: any, scheam?: Record<string, ISchemaType> | string | number): any {
-    if (!scheam) throw new Error("no scheam found");
-    const cheker = this.api.schemaChecker();
-    if (typeof scheam === "string") {
-      const ret = String(res);
-      assert(ret === scheam);
-      return ret;
-    }
-    if (typeof scheam === "number") {
-      const ret = Number(res);
-      assert(ret === scheam);
-      return ret;
-    }
-    if (Array.isArray(res)) {
-      return res.map(r => cheker(r, scheam));
-    }
-    if (res.page_data && Array.isArray(res.list)) {
-      const ret = { page_data: res.page_data, list: [] as any[] };
-      ret.list = (res.list as any[]).map(r => cheker(r, scheam));
-      return ret;
-    }
-    return this.api.schemaChecker()(res, scheam);
+  protected verifyOutput(res: any, schema?: any): any {
+    if (!schema) throw new Error("no schema found");
+
+    const { ok, value, message } = this.checker(res, schema);
+    if (!ok) throw new Error(message);
+    return value;
   }
 }

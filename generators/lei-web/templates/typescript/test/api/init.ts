@@ -7,8 +7,7 @@ import util from "util";
 
 import apiService from "../../src/api";
 import app from "../../src/app";
-import { Context } from "../../src/web";
-import { Model, Service } from "../../src/global/index";
+import { utils } from "../../src/global";
 import prettier from "prettier";
 import APITest from "./api.gen";
 
@@ -32,7 +31,7 @@ function format(data: any): [Error | null, any] {
   if (data.ok && data.result) {
     return [null, data.result];
   }
-  return [data.msg || data.message, null];
+  return [data, null];
 }
 
 apiService.setFormatOutput(format);
@@ -44,19 +43,12 @@ function prettierSaveFile(filepath: string, content: string) {
 
 apiService.setDocWritter(prettierSaveFile);
 
-class MockContext extends Context {
-  public test = true;
-  get request() {
-    return { path: undefined, $params: {} } as any;
-  }
-}
-
-const ctx = new MockContext();
-
 const shareTestData = {
   data: testData as any,
-  model: new Model(ctx),
-  service: new Service(ctx),
+  model: app.model,
+  service: app.service,
+  config: app.config,
+  sleep: utils.sleep,
 };
 
 const testAgent = new APITest(apiService, shareTestData);
