@@ -21,7 +21,7 @@ function genIt(key: string, method: string, desc: string, params: string[]) {
   return `
   /** ${desc} */
   ${name}Raw(input?: ${inte}, example?: string) {
-    return this.${method}(\`/api${path}\`, input, example, ${JSON.stringify(params)});
+    return this.${method}(\`/${apiService.privateInfo.info.basePath}${path}\`, input, example, ${JSON.stringify(params)});
   }
   /** ${desc}（成功） */
   ${name}Ok(input?: ${inte}, example?: string) {
