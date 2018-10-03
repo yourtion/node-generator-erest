@@ -18,24 +18,25 @@ function genIt(key: string, method: string, desc: string, params: string[]) {
   // const schema = {};
   interfaces.push(inte);
   const path = key.substring(key.indexOf("_") + 1).replace(/:(\w+)/, "${input!.$1}");
+  const basePath = apiService.privateInfo.info.basePath;
   return `
   /** ${desc} */
-  ${name}Raw(input?: ${inte}, example?: string) {
-    return this.${method}(\`/${apiService.privateInfo.info.basePath}${path}\`, input, example, ${JSON.stringify(
-    params
-  )});
+  ${name}Raw(input?: ${inte}, example?: string, headers?: Record<string, any>) {
+    const req = this.${method}(\`${basePath}${path}\`, input, example, ${JSON.stringify(params)});
+    if(headers) req.headers(headers);
+    return req;
   }
   /** ${desc}（成功） */
-  ${name}Ok(input?: ${inte}, example?: string) {
-    return this.${name}Raw(input, example).success()
+  ${name}Ok(input?: ${inte}, example?: string, headers?: Record<string, any>) {
+    return this.${name}Raw(input, example, headers).success()
   }
   /** ${desc}（出错） */
-  ${name}Err(input?: ${inte}, example?: string) {
-    return this.${name}Raw(input, example).error()
+  ${name}Err(input?: ${inte}, example?: string, headers?: Record<string, any>) {
+    return this.${name}Raw(input, example, headers).error()
   }
   /** ${desc} (检查参数) */
-  async ${name}Verify(input?: ${inte}, example?: string) {
-    const ret = await this.${name}Ok(input, example);
+  async ${name}Verify(input?: ${inte}, example?: string, headers?: Record<string, any>) {
+    const ret = await this.${name}Ok(input, example, headers);
     const opt = this.api.api.$apis.get("${key}")!.options;
     const schema = opt.responseSchema || opt.response;
     return this.verifyOutput(ret, schema);
