@@ -184,7 +184,7 @@ export function checkParams(data: Record<string, any>, keys: string[]) {
 export function filterParams(data: Record<string, any>, keys: string[]) {
   const obj: Record<string, any> = {};
   keys.forEach(key => {
-    if (data[key] !== undefined)  obj[key] = data[key];
+    if (data[key] !== undefined) obj[key] = data[key];
   });
   return obj;
 }
