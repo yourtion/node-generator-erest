@@ -41,3 +41,12 @@ exports.getJSDeps = () => {
 exports.getJSDevDeps = () => {
   return devDependencies;
 };
+
+exports.updateIgnoreTS = [
+  '**/*.gen.ts',
+  '**/models/index.ts',
+  '**/services/index.ts',
+  '**/*.yaml',
+  '**/routers/test.ts',
+  '**/api/test-index.ts',
+];

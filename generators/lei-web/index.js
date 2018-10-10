@@ -16,8 +16,8 @@ module.exports = class extends Generator {
 
   prompting() {
     this.isExits = this.fs.exists(this.destinationPath('package.json'));
-    this.isTS = this.fs.exists(this.destinationPath('tsconfig.json'));
     if (this.isExits) {
+      this.isTS = this.fs.exists(this.destinationPath('tsconfig.json'));
       return this.prompt({
         type: 'confirm',
         name: 'update',
@@ -56,8 +56,9 @@ module.exports = class extends Generator {
         projectName: this.prop.name,
         target: this.prop.target,
       };
+      const opt = !this.isExits ? {} : { globOptions: { ignore: config.updateIgnoreTS } };
       for (const dis of ['bin', 'src', 'test', 'scripts']) {
-        this.fs.copy(this.templatePath(`typescript/${dis}`), this.destinationPath(dis));
+        this.fs.copy(this.templatePath(`typescript/${dis}`), this.destinationPath(dis), opt);
       }
       this.fs.copy(this.templatePath('typescript/.prettierrc.js'), this.destinationPath('.prettierrc.js'));
 
