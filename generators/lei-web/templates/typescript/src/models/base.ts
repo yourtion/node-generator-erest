@@ -111,6 +111,8 @@ export interface IBaseOptions {
   fields?: string[];
   /** 默认排序key */
   order?: string;
+  /** 连接 */
+  connect?: IPoolPromise;
 }
 
 export default class Base<T> extends BaseModel {
@@ -138,6 +140,7 @@ export default class Base<T> extends BaseModel {
     this.primaryKey = options.primaryKey || "id";
     this.fields = options.fields || [];
     this.order = options.order;
+    if (options.connect) this.connect = options.connect;
   }
 
   /** 数据库错误处理 */
@@ -261,7 +264,7 @@ export default class Base<T> extends BaseModel {
     connect: IConnectionPromise | IPoolPromise,
     primary: IPrimary,
     fields = this.fields
-  ): Promise<T> {
+  ): Promise<T | undefined> {
     return this.query(this._getByPrimary(primary, fields), connect).then((res: T[]) => res && res[0]);
   }
 
@@ -286,7 +289,7 @@ export default class Base<T> extends BaseModel {
     connect: IConnectionPromise | IPoolPromise,
     object: IRecord<T> = {},
     fields = this.fields
-  ): Promise<T> {
+  ): Promise<T | undefined> {
     return this.query(this._getOneByField(object, fields), connect).then((res: T[]) => res && res[0]);
   }
 

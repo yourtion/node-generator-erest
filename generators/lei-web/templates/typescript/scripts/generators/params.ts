@@ -4,13 +4,19 @@ import { firstUpperCase, underscore2camelCase } from "../../src/global/base/util
 
 function schemaToInterface(name: string, schema: ISchemaType, isRequired = false) {
   const required = schema.required || isRequired;
-  const type = apiService.type.get(schema.type);
-  let teType = type.info.tsType || "any";
   const res = [];
   if (schema.comment) {
     res.push(`/** ${schema.comment} */`);
   }
-  res.push(`${name}${required ? "" : "?"}:${teType};`);
+  if(apiService.type.has(schema.type)) {
+    const type = apiService.type.get(schema.type);
+    let teType = type.info.tsType || "any";
+    const res = [];
+    res.push(`${name}${required ? "" : "?"}:${teType};`);
+  } else {
+    res.push(`${name}${required ? "" : "?"}:any`);
+    return res.join("\n");
+  }
   return res.join("\n");
 }
 
