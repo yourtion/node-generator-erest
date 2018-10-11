@@ -24,7 +24,7 @@ const dependenciesTS = [
 
 const devDependencies = ['chai', 'debug', 'mocha', 'prettier', 'supertest', 'ts-node', 'typescript'];
 
-const devDependenciesTS = ['@types/chai', '@types/mocha', '@types/prettier'];
+const devDependenciesTS = ['@types/chai', '@types/mocha', '@types/prettier', '@types/supertest'];
 
 exports.getTSDeps = () => {
   return [].concat(dependencies);
