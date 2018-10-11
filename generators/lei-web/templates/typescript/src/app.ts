@@ -14,7 +14,7 @@ import { config, errors, logger } from "./global";
 // 静态文件
 app.use("/h5", component.serveStatic(resolve(__dirname, "../public/h5")));
 app.use("/admin", component.serveStatic(resolve(__dirname, "../public/admin")));
-app.use("/api", router);
+app.use(apiService.privateInfo.info.basePath || "/", router);
 
 // 跨域
 router.use(
@@ -35,7 +35,8 @@ router.use("/", function(ctx) {
   }
 });
 
-router.use("/", component.jsonParser());
+router.use("/", component.bodyParser.json());
+router.use("/", component.bodyParser.urlencoded({ extended: true }));
 
 require("./routers");
 apiService.bindRouterToApp(router, Router, apiService.checkerLeiWeb);

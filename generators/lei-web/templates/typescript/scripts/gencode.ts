@@ -44,20 +44,25 @@ async function main() {
   await prettierSaveFile(paramsFilePath, genParams(), true);
   console.log("generated -> params");
 
-  const modelsGenPath = FILE_PATH + "/models.gen.ts";
+  let modelConfig;
 
-  const { tableGen, schemas, indexs, tableImport, coreModelGen, coreModelSymbl } = await genModels(config.tablePrefix);
-  await prettierSaveFile(modelsGenPath, tableGen.join("\n"), true);
+  if(config.mysql) {
+    const modelsGenPath = FILE_PATH + "/models.gen.ts";
 
-  for (const model of Object.keys(schemas)) {
-    const file = getModelsPath(model);
-    const modelString = schemas[model];
-    await prettierSaveFile(file, modelString);
+    const { tableGen, schemas, indexs, tableImport, coreModelGen, coreModelSymbl } = await genModels(config.tablePrefix);
+    await prettierSaveFile(modelsGenPath, tableGen.join("\n"), true);
+
+    for (const model of Object.keys(schemas)) {
+      const file = getModelsPath(model);
+      const modelString = schemas[model];
+      await prettierSaveFile(file, modelString);
+    }
+
+    const modelIndex = getModelsPath("index");
+    await prettierSaveFile(modelIndex, indexs.join("\n"), true);
+    console.log("generated -> models");
+    modelConfig = { import: tableImport, symbol: coreModelSymbl, content: coreModelGen };
   }
-
-  const modelIndex = getModelsPath("index");
-  await prettierSaveFile(modelIndex, indexs.join("\n"), true);
-  console.log("generated -> models");
 
   const services = await genService();
 
@@ -69,7 +74,7 @@ async function main() {
   await prettierSaveFile(
     coreFilePath,
     genCoreFile(
-      { import: tableImport, symbol: coreModelSymbl, content: coreModelGen },
+      modelConfig,
       { import: services.serviceImport, symbol: services.symbols, content: services.serviceGen }
     ),
     true

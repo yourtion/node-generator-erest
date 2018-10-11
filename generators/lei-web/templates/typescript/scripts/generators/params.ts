@@ -8,7 +8,7 @@ function schemaToInterface(name: string, schema: ISchemaType, isRequired = false
   if (schema.comment) {
     res.push(`/** ${schema.comment} */`);
   }
-  if(apiService.type.has(schema.type)) {
+  if (apiService.type.has(schema.type)) {
     const type = apiService.type.get(schema.type);
     let teType = type.info.tsType || "any";
     const res = [];
