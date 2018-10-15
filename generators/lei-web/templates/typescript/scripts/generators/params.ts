@@ -15,7 +15,6 @@ function schemaToInterface(name: string, schema: ISchemaType, isRequired = false
     res.push(`${name}${required ? "" : "?"}:${teType};`);
   } else {
     res.push(`${name}${required ? "" : "?"}:any`);
-    return res.join("\n");
   }
   return res.join("\n");
 }
