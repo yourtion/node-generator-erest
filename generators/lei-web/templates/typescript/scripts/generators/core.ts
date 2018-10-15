@@ -5,10 +5,10 @@ export interface IGenParam {
 }
 export function genCoreFile(model?: IGenParam, service?: IGenParam) {
   const res = [`import { BaseService, BaseModel, CoreGen } from "../../core";\n`];
-  if(model) res.push(model.import + "\n");
-  if(service) res.push(service.import + "\n");
+  if (model) res.push(model.import + "\n");
+  if (service) res.push(service.import + "\n");
 
-  if(service) {
+  if (service) {
     res.push(service.symbol.join("\n"));
     res.push(`export class Service extends CoreGen<BaseService> {
       ${service.content.join("\n")}
@@ -19,7 +19,7 @@ export function genCoreFile(model?: IGenParam, service?: IGenParam) {
 
   // res.push(`export class Router extends CoreGen<BaseRouter> {}\n`);
   // res.push(`export class Controller extends CoreGen<BaseController> {}\n`);
-  if(model) {
+  if (model) {
     res.push(model.symbol.join("\n"));
     res.push(`export class Model extends CoreGen<BaseModel> {
       ${model.content.join("\n")}

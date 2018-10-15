@@ -46,10 +46,12 @@ async function main() {
 
   let modelConfig;
 
-  if(config.mysql) {
+  if (config.mysql) {
     const modelsGenPath = FILE_PATH + "/models.gen.ts";
 
-    const { tableGen, schemas, indexs, tableImport, coreModelGen, coreModelSymbl } = await genModels(config.tablePrefix);
+    const { tableGen, schemas, indexs, tableImport, coreModelGen, coreModelSymbl } = await genModels(
+      config.tablePrefix
+    );
     await prettierSaveFile(modelsGenPath, tableGen.join("\n"), true);
 
     for (const model of Object.keys(schemas)) {
@@ -73,10 +75,11 @@ async function main() {
   const coreFilePath = FILE_PATH + "/core.gen.ts";
   await prettierSaveFile(
     coreFilePath,
-    genCoreFile(
-      modelConfig,
-      { import: services.serviceImport, symbol: services.symbols, content: services.serviceGen }
-    ),
+    genCoreFile(modelConfig, {
+      import: services.serviceImport,
+      symbol: services.symbols,
+      content: services.serviceGen,
+    }),
     true
   );
   console.log("generated -> core");
