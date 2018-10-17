@@ -7,13 +7,7 @@ const readdirAsync = util.promisify(fs.readdir);
 const readFileAsync = util.promisify(fs.readFile);
 
 function getServiceExport(files: string[]) {
-  const res = [
-    `/**
- * @file service export
- * @author Yourtion Guo <yourtion@gmail.com>
- */
-`,
-  ];
+  const res = [`/**\n * @file service export\n * @author Yourtion Guo <yourtion@gmail.com>\n */\n`];
   for (const f of files) {
     res.push(`export * from "./${f}";`);
   }

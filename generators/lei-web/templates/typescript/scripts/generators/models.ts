@@ -198,5 +198,6 @@ export async function genModels(tbPrefix: string) {
   for (const t of result.tables) {
     result.coreModelSymbl.push(`const ${t.toUpperCase()}_M_SYM = Symbol("${t.toUpperCase()}");`);
   }
+  if (result.indexs.length === 1) result.indexs.push("export default {};");
   return result;
 }
