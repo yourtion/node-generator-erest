@@ -10,6 +10,7 @@ module.exports = class extends Generator {
     this.isTS = false;
     this.isJS = false;
     this.isCov = false;
+    this.isDocker = false;
     this.lang = '';
     this.prop = {};
   }
@@ -30,6 +31,7 @@ module.exports = class extends Generator {
     return this.prompt(prompts.call(this)).then(prop => {
       this.prop = prop;
       this.isCov = this.prop.nyc;
+      this.isDocker = this.prop.docker;
       this.lang = this.prop.language.toLocaleLowerCase();
       this.isTS = this.prop.language === 'TypeScript';
       this.isJS = this.prop.language === 'JavaScript';
@@ -46,6 +48,9 @@ module.exports = class extends Generator {
         packageInfo.scripts['test-cov'] = 'export NODE_ENV=test && nyc mocha test/api/test-*.ts';
       }
       this.fs.extendJSON(this.destinationPath('package.json'), genPackage(packageInfo, this.prop));
+    }
+    if (this.isDocker) {
+      this.fs.copy(this.templatePath('docker'), this.destinationPath(''));
     }
 
     if (this.isTS) {

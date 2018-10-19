@@ -79,6 +79,12 @@ exports.prompts = function prompts() {
       default: false,
     },
     {
+      type: 'confirm',
+      name: 'docker',
+      message: 'need add docker build ?',
+      default: false,
+    },
+    {
       type: 'list',
       name: 'target',
       default: 'esnext',
