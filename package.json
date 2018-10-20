@@ -34,8 +34,8 @@
     "yeoman-generator": "^3.1.1"
   },
   "devDependencies": {
-    "eslint": "^5.6.0",
+    "eslint": "^5.7.0",
     "eslint-config-guo": "^0.8.0",
-    "prettier": "^1.14.2"
+    "prettier": "^1.14.3"
   }
 }
