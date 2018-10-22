@@ -63,7 +63,7 @@ export interface ILogger {
   fatal(format: Error | object | any, ...params: any[]): void;
 }
 
-const defaultLevel = config.logLevel || config.ispro ? "info" : "trace";
+const defaultLevel = config.logLevel || (config.ispro ? "info" : "trace");
 
 function getStream(path: string) {
   const fileStream = createWriteStream(path, { flags: "a+" });
