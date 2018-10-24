@@ -11,7 +11,6 @@ function schemaToInterface(name: string, schema: ISchemaType, isRequired = false
   if (apiService.type.has(schema.type)) {
     const type = apiService.type.get(schema.type);
     let teType = type.info.tsType || "any";
-    const res = [];
     res.push(`${name}${required ? "" : "?"}:${teType};`);
   } else {
     res.push(`${name}${required ? "" : "?"}:any`);
