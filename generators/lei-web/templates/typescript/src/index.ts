@@ -33,8 +33,12 @@ process.on("unhandledRejection", err => {
 process.on("SIGINT", () => {
   // Clean up other resources like DB connections
   function cleanUp(cb?: any) {
-    redis.disconnect();
-    mysql.end(cb);
+    redis && redis.disconnect();
+    if (mysql) {
+      mysql.end(cb);
+    } else {
+      cb();
+    }
   }
 
   app.server.close(() => {
@@ -51,3 +55,4 @@ process.on("SIGINT", () => {
     process.exit(1);
   }, 5000);
 });
+
