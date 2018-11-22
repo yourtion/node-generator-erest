@@ -32,7 +32,7 @@ function getConfigComment() {
   let comm = "";
   for (const line of strs) {
     const keys = line.split(":");
-    const key = keys && keys[0];
+    const key = keys[0];
     const commentIdx = line.indexOf("#");
     const keyIdx = line.indexOf(":");
     const comment = commentIdx > -1 && line.substring(commentIdx + 1);
