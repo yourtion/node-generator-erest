@@ -61,7 +61,7 @@ module.exports = class extends Generator {
         projectName: this.prop.name,
         target: this.prop.target,
       };
-      const opt = !this.isExits ? {} : { globOptions: { ignore: config.updateIgnoreTS } };
+      const opt = !this.isExits ? {} : { globOptions: { ignore: config.updateIgnoreTS }};
       for (const dis of ['bin', 'src', 'test', 'scripts']) {
         this.fs.copy(this.templatePath(`typescript/${dis}`), this.destinationPath(dis), opt);
       }
@@ -69,7 +69,7 @@ module.exports = class extends Generator {
 
       if (this.isExits) return;
       this.fs.copyTpl(this.templatePath('typescript/tsconfig.temp.json'), this.destinationPath('tsconfig.json'), info);
-      this.fs.copyTpl(this.templatePath('app.temp.json'), this.destinationPath('app.json'), info);
+      this.fs.copyTpl(this.templatePath('app.temp.yaml'), this.destinationPath('app.yaml'), info);
       for (const conf of ['base', 'dev', 'test']) {
         this.fs.copyTpl(
           this.templatePath(`typescript/config/${conf}.temp.yaml`),
