@@ -25,12 +25,12 @@ module.exports = class extends Generator {
         name: 'name',
         message: res => `Please input ${this.type || res.type}'s name:`,
         when: () => !this.name,
-        validate: (v) => !!v,
+        validate: v => !!v,
       },
       {
         name: 'cnName',
         message: res => `Please input ${this.type || res.type}'s Comment name:`,
-        when: (res) => (this.type || res.type) === 'Service' && !this.cnName,
+        when: res => (this.type || res.type) === 'Service' && !this.cnName,
       },
     ]).then(prop => {
       this.prop = prop;
@@ -47,15 +47,17 @@ module.exports = class extends Generator {
     const name = utils.firstUpperCase(utils.underscore2camelCase(this.name));
     if (this.type === 'service') {
       this.fs.copyTpl(
-        this.templatePath('typescript/service.ts'),
+        this.templatePath('typescript/service.ts.temp'),
         this.destinationPath(`src/services/${filename}.s.ts`),
         { name, cnName: this.cnName }
       );
     }
     if (this.type === 'router') {
-      this.fs.copyTpl(this.templatePath('typescript/router.ts'), this.destinationPath(`src/router/${filename}.r.ts`), {
-        name,
-      });
+      this.fs.copyTpl(
+        this.templatePath('typescript/router.ts.temp'),
+        this.destinationPath(`src/router/${filename}.r.ts`),
+        { name }
+      );
     }
   }
 };
