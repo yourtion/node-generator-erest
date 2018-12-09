@@ -23,19 +23,21 @@ module.exports = class extends Generator {
       },
       {
         name: 'name',
-        message: res => `Please input ${this.type || res.type}'s name`,
+        message: res => `Please input ${this.type || res.type}'s name:`,
         when: () => !this.name,
+        validate: (v) => !!v,
       },
       {
         name: 'cnName',
-        message: res => `Please input ${this.type || res.type}'s name`,
-        when: () => !this.name,
+        message: res => `Please input ${this.type || res.type}'s Comment name:`,
+        when: (res) => (this.type || res.type) === 'Service' && !this.cnName,
       },
     ]).then(prop => {
       this.prop = prop;
       this.type = this.prop.type || this.type;
       this.name = this.prop.name || this.name;
-      this.log(JSON.stringify(prop, null, 2));
+      this.cnName = this.prop.cnName || this.cnName;
+      // this.log(JSON.stringify(prop, null, 2));
     });
   }
 
