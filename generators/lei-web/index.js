@@ -69,7 +69,7 @@ module.exports = class extends Generator {
 
       if (this.isExits) return;
       this.fs.copyTpl(this.templatePath('typescript/tsconfig.temp.json'), this.destinationPath('tsconfig.json'), info);
-      this.fs.copyTpl(this.templatePath('app.temp.json'), this.destinationPath('app.json'), info);
+      this.fs.copyTpl(this.templatePath('app.temp.yaml'), this.destinationPath('app.yaml'), info);
       for (const conf of ['base', 'dev', 'test']) {
         this.fs.copyTpl(
           this.templatePath(`typescript/config/${conf}.temp.yaml`),

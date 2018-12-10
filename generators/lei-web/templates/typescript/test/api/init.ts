@@ -24,7 +24,7 @@ try {
   console.log(err);
 }
 
-apiService.initTest(app.server, __dirname);
+apiService.initTest(app.server, __dirname, path.resolve(__dirname, "../../docs"));
 
 function format(data: any): [Error | null, any] {
   debug(util.inspect(data, false, 5, true));

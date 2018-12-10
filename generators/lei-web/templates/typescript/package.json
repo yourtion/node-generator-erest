@@ -8,7 +8,7 @@
     "docs": "cd docs && git add . && git commit && git push",
     "format": "prettier --write {src,scripts,test}/**/*.ts",
     "code": "cd scripts && export NODE_ENV=dev && ts-node gencode.ts -P .",
-    "pm2": "pm2 startOrGracefulReload app.json",
+    "pm2": "pm2 startOrGracefulReload app.yaml",
     "deploy": "git pull && npm run tnpm && tsc && npm run pm2",
     "logs": "tail -F ./logs/*.log | pino-pretty -l -t \"SYS:mm-dd HH:MM:ss.l\""
   },

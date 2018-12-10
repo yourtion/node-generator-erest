@@ -2,10 +2,9 @@
   "extends": "../tsconfig",
   "compilerOptions": {
     "target": "esnext",
-    "rootDirs": ["../src", "."],
     "outDir": "../dist/script",
     "pretty": true,
     "strict": false
   },
-  "include": ["../src/**/*.ts", "./**/*.ts"]
+  "include": ["../src/**/*.ts", "../test/**/*.ts", "./**/*.ts"]
 }

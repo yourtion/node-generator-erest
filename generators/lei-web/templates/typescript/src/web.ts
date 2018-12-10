@@ -112,7 +112,6 @@ export class Response extends base.Response {
   /** 返回成功分页数据 */
   public page(data: IPageResult<any>) {
     this.ok({
-      ...data,
       page_data: {
         page: (this.ctx.request as Request).$pages.page,
         page_count: (this.ctx.request as Request).$pages.limit,
