@@ -26,7 +26,7 @@ export default class TestAgent<T> {
       if (params) {
         params.forEach(p => delete param[p]);
       }
-      if(method === "get") {
+      if (method === "get") {
         req.query(param);
       } else {
         req.input(param);

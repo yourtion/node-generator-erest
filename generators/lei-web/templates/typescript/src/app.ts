@@ -28,7 +28,7 @@ router.use(
 );
 router.use("/", function(ctx) {
   if (ctx.request.method && ctx.request.method.toUpperCase() === "OPTIONS") {
-    ctx.response.setStatus(200);
+    ctx.response.status(200);
     ctx.response.end();
   } else {
     ctx.next();
