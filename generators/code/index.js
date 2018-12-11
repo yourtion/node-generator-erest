@@ -55,7 +55,7 @@ module.exports = class extends Generator {
     if (this.type === 'router') {
       this.fs.copyTpl(
         this.templatePath('typescript/router.ts.temp'),
-        this.destinationPath(`src/router/${filename}.r.ts`),
+        this.destinationPath(`src/routers/${filename}.r.ts`),
         { name }
       );
     }
