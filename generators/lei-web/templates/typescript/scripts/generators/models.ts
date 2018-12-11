@@ -194,6 +194,7 @@ export async function genModels(tbPrefix: string) {
     result.tableGen.push(`export const ModelNames = [${result.modelNames.map(m => `"${m}"`).join(", ")}]`);
     result.tableGen.push(`export type ModelName = ${result.modelNames.map(m => `"${m}Model"`).join(" | ")}`);
   }
+  if (result.tableGen.length === 1) result.tableGen.push("export default {};");
   result.tableImport = `import { ${result.models.join(", ")} } from "../../models";`;
   for (const t of result.tables) {
     result.coreModelSymbl.push(`const ${t.toUpperCase()}_M_SYM = Symbol("${t.toUpperCase()}");`);
