@@ -16,5 +16,9 @@
   "devDependencies": {},
   "engine-strict": {
     "node": ">=8.0"
+  },
+  "prettier": {
+    "printWidth": 120,
+    "trailingComma": "es5"
   }
 }
