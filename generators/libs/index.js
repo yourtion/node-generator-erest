@@ -15,7 +15,7 @@ module.exports = class extends Generator {
     return this.prompt([
       {
         type: 'list',
-        name: 'type',
+        name: 'lib',
         message: 'Please choose Libs:',
         choices: LIBS,
         when: () => !this.lib || !LIBS.includes(this.lib),
