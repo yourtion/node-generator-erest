@@ -10,3 +10,4 @@ mysql:
   password: "123456"
   database: "<%= projectNameShort %>"
   charset: "utf8mb4"
+  connectionLimit: 10
