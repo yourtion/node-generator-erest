@@ -41,6 +41,7 @@ module.exports = class extends Generator {
 
   writing() {
     this.fs.copy(this.templatePath('gitignore'), this.destinationPath('.gitignore'));
+    this.fs.copy(this.templatePath('editorconfig'), this.destinationPath('.editorconfig'));
     if (!this.isExits) {
       const packageInfo = this.fs.readJSON(this.templatePath(this.lang + '/package.json'));
       if (this.isCov) {
