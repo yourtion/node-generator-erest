@@ -1,6 +1,6 @@
 const Generator = require('yeoman-generator');
 
-const LIBS = ['jwt', 'xlsx'];
+const LIBS = ['jwt', 'xlsx', 'session'];
 
 module.exports = class extends Generator {
   constructor(args, opts) {
