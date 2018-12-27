@@ -1,3 +1,7 @@
+/**
+ * @file jwt 中间件
+ * @author Yourtion Guo <yourtion@gmail.com>
+ */
 import jsonwebtoken from "jsonwebtoken";
 import { Context, component } from "../web";
 
