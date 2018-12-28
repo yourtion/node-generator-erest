@@ -6,7 +6,7 @@
     "dev": "nodemon -e ts -x ts-node src/index.ts",
     "test": "export NODE_ENV=test && mocha test/api/test-*.ts",
     "docs": "cd docs && git add . && git commit && git push",
-    "format": "prettier --write {src,scripts,test}/**/*.ts",
+    "format": "prettier --write \"{src,scripts,test}/**/*.ts\" && prettier --write --parser yaml \"config/*.yaml\"",
     "code": "cd scripts && export NODE_ENV=dev && ts-node gencode.ts -P .",
     "pm2": "pm2 startOrGracefulReload app.yaml",
     "deploy": "git pull && npm run tnpm && tsc && npm run pm2",

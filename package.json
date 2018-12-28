@@ -8,7 +8,7 @@
     "generators"
   ],
   "scripts": {
-    "format": "eslint . --fix && prettier --write \"./**/*.{js,ts,json}\"",
+    "format": "eslint . --fix && prettier --write \"./**/*.{js,ts,json,yaml}\"",
     "tag": "git tag v`node -p 'require(\"./package\").version'`",
     "prepublishOnly": "npm run format",
     "postpublish": "npm run tag",
