@@ -3,7 +3,6 @@
  * @author Yourtion Guo <yourtion@gmail.com>
  */
 
-require("../../src/app");
 import apiService from "../../src/api";
 import { firstUpperCase, underscore2camelCase, firstLowerCase } from "../../src/global/base/utils";
 

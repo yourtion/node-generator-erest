@@ -1,4 +1,3 @@
-// require("../../src/app");
 import apiService from "../../src/api";
 import { ISchemaType } from "erest/dist/lib/params";
 import { firstUpperCase, underscore2camelCase } from "../../src/global/base/utils";

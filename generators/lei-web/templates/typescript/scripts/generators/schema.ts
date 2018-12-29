@@ -1,4 +1,3 @@
-require("../../src/app");
 import apiService from "../../src/api";
 
 function mapType(type: string) {
