@@ -8,6 +8,7 @@ import apiService from "../../src/api";
 import { firstUpperCase, underscore2camelCase, firstLowerCase } from "../../src/global/base/utils";
 
 const interfaces: string[] = [];
+const response: string[] = [];
 const lines: string[] = [];
 
 function genIt(key: string, method: string, desc: string, params: string[]) {
@@ -15,8 +16,10 @@ function genIt(key: string, method: string, desc: string, params: string[]) {
   const n = firstUpperCase(underscore2camelCase(k));
   const name = firstLowerCase(underscore2camelCase(k));
   const inte = `IParams${n}`;
+  const resp = `IResponse${n}`;
   // const schema = {};
   interfaces.push(inte);
+  response.push(resp);
   const path = key.substring(key.indexOf("_") + 1).replace(/:(\w+)/, "${input!.$1}");
   const basePath = apiService.privateInfo.info.basePath;
   return `
@@ -27,15 +30,15 @@ function genIt(key: string, method: string, desc: string, params: string[]) {
     return req;
   }
   /** ${desc}（成功） */
-  ${name}Ok(input?: ${inte}, example?: string, headers?: Record<string, any>) {
+  ${name}Ok(input?: ${inte}, example?: string, headers?: Record<string, any>): Promise<${resp}> {
     return this.${name}Raw(input, example, headers).success()
   }
   /** ${desc}（出错） */
-  ${name}Err(input?: ${inte}, example?: string, headers?: Record<string, any>) {
+  ${name}Err(input?: ${inte}, example?: string, headers?: Record<string, any>): Promise<IError> {
     return this.${name}Raw(input, example, headers).error()
   }
   /** ${desc} (检查参数) */
-  async ${name}Verify(input?: ${inte}, example?: string, headers?: Record<string, any>) {
+  async ${name}Verify(input?: ${inte}, example?: string, headers?: Record<string, any>): Promise<${resp}> {
     const ret = await this.${name}Ok(input, example, headers);
     const opt = this.api.api.$apis.get("${key}")!.options;
     const schema = opt.responseSchema || opt.response;
@@ -47,7 +50,14 @@ function genIt(key: string, method: string, desc: string, params: string[]) {
 function genFile() {
   return `
 import TestAgent from "../agent";
-import { ${interfaces.join(", ")}} from "../../src/global"
+import { ${interfaces.join(", ")} ,${response.join(", ")}} from "../../src/global"
+
+export interface IError {
+  ok: boolean;
+  error_code: number;
+  message: string;
+  msg: string;
+}
 
 export default class APITest<T> extends TestAgent<T> {
   ${lines.join("\n")}

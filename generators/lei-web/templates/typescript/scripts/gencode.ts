@@ -5,6 +5,8 @@
 
 import path from "path";
 
+require("../../src/app");
+
 const FILE_PATH = path.resolve(__dirname, "../src/global/gen");
 import { prettierSaveFile } from "./utils";
 
@@ -18,6 +20,8 @@ import {
   genParams,
   genService,
   genTest,
+  genSchemaFile,
+  genResponses,
 } from "./generators/index";
 
 function getModelsPath(name: string) {
@@ -43,6 +47,14 @@ async function main() {
   const paramsFilePath = FILE_PATH + "/params.gen.ts";
   await prettierSaveFile(paramsFilePath, genParams(), true);
   console.log("generated -> params");
+
+  const schemaFilePath = FILE_PATH + "/schemas.gen.ts";
+  await prettierSaveFile(schemaFilePath, genSchemaFile(), true);
+  console.log("generated -> schema");
+
+  const responseFilePath = FILE_PATH + "/responses.gen.ts";
+  await prettierSaveFile(responseFilePath, genResponses(), true);
+  console.log("generated -> responses");
 
   let modelConfig;
 

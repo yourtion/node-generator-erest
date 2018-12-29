@@ -6,3 +6,5 @@ export * from "./core";
 export * from "./params";
 export * from "./service";
 export * from "./tests";
+export * from "./schema";
+export * from "./response";
