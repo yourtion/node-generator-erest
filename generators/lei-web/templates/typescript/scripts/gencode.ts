@@ -5,7 +5,7 @@
 
 import path from "path";
 
-require("../../src/app");
+require("../src/app");
 
 const FILE_PATH = path.resolve(__dirname, "../src/global/gen");
 import { prettierSaveFile } from "./utils";

@@ -13,6 +13,7 @@ export * from "./gen/types.gen";
 export * from "./gen/models.gen";
 export * from "./gen/params.gen";
 export * from "./gen/core.gen";
+export * from "./gen/responses.gen";
 
 import sequelLib from "@blueshit/squel";
 export const squel = sequelLib.useFlavour("mysql");
