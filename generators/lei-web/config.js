@@ -7,7 +7,6 @@ const dependencies = [
   'pino',
   'pino-pretty',
   '@blueshit/squel',
-  'uuid',
   'js-yaml',
 ];
 
@@ -18,7 +17,6 @@ const dependenciesTS = [
   '@types/mysql',
   '@types/node',
   '@types/pino',
-  '@types/uuid',
   '@types/debug',
 ];
 

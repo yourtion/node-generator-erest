@@ -1,6 +1,5 @@
 import * as base from "@leizm/web";
-import { v4 as uuid } from "uuid";
-import { IPageParams, getLogger, errors, config } from "./global";
+import { IPageParams, getLogger, errors, config, utils } from "./global";
 import { Service, Model } from "./global/gen/core.gen";
 import { IPageResult } from "./models/base";
 export * from "@leizm/web";
@@ -12,8 +11,12 @@ export type MiddlewareHandle = (ctx: Context, err?: base.ErrorReason) => Promise
 export class Application extends base.Application<Context> {
   protected contextConstructor = Context;
   /** 获取日志实例 */
-  public getLogger(opt: Record<string, any>) {
+  public getLogger(opt?: Record<string, any>) {
     return getLogger("app", opt);
+  }
+  /** 日志 */
+  public get log() {
+    return this.getLogger();
   }
   /** 错误信息 */
   public errors = errors;
@@ -53,7 +56,7 @@ export class Context extends base.Context<Request, Response> {
   }
 
   public inited() {
-    this.$reqId = String(this.request.getHeader("X-Request-Id") || uuid());
+    this.$reqId = String(this.request.getHeader("X-Request-Id") || utils.createRequestId());
     this.response.setHeader("X-Request-Id", this.$reqId);
     this.response.setHeader("X-Project", pjson.name || "");
   }
@@ -67,6 +70,7 @@ export class Request extends base.Request {
   private pages?: IPageParams;
   /** excel parse */
   public $sheet: any[] = [];
+
   /** IP地址 */
   public get $ip() {
     const ip = String(
@@ -74,6 +78,12 @@ export class Request extends base.Request {
     ).match(/\d+\.\d+\.\d+\.\d+/);
     return (ip && ip[0]) || "";
   }
+
+  /** User-Agent */
+  public get $ua() {
+    return this.headers["user-agent"];
+  }
+
   /** 分页参数 */
   public get $pages() {
     if (this.pages) return this.pages;
