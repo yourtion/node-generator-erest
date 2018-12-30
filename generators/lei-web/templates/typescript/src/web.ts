@@ -5,6 +5,8 @@ import { Service, Model } from "./global/gen/core.gen";
 import { IPageResult } from "./models/base";
 export * from "@leizm/web";
 
+const pjson = require("../package.json");
+
 export type MiddlewareHandle = (ctx: Context, err?: base.ErrorReason) => Promise<void> | void;
 
 export class Application extends base.Application<Context> {
@@ -53,6 +55,7 @@ export class Context extends base.Context<Request, Response> {
   public inited() {
     this.$reqId = String(this.request.getHeader("X-Request-Id") || uuid());
     this.response.setHeader("X-Request-Id", this.$reqId);
+    this.response.setHeader("X-Project", pjson.name || "");
   }
 }
 
