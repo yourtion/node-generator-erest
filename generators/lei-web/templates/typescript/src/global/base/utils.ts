@@ -49,6 +49,48 @@ export function unixTime(unixtime: number) {
   );
 }
 
+/** 生成 RequestID */
+export function createRequestId(): string {
+  return (
+    Date.now().toString(32) +
+    Math.random()
+      .toString(32)
+      .slice(2) +
+    Math.random()
+      .toString(32)
+      .slice(2)
+  );
+}
+
+/** 获取 timestamp */
+export function genTimestamp(after = 0) {
+  const now = new Date();
+  return parseInt(String((now.getTime() + after * 1000) / 1000), 10);
+}
+
+/** 获取日期字符串 */
+export function getDateString(pad = "", time = new Date()) {
+  return `${time.getFullYear()}${pad}${leftPad(time.getMonth() + 1, 2)}${pad}${leftPad(time.getDate(), 2)}`;
+}
+
+/** 获取时间字符串 */
+export function getTimeString(pad = "", time = new Date()) {
+  return `${time.getHours()}${pad}${leftPad(time.getMinutes(), 2)}${pad}${leftPad(time.getSeconds(), 2)}`;
+}
+
+/** 获取日期时间字符串（2018-01-01 12:30:59） */
+export function getDateTimeString(pad = "", time = new Date()) {
+  return `${getDateString("-", time)} ${getTimeString(":", time)}`;
+}
+
+/** 今天的日期整数表示：20180913 */
+export function dateNumber(date = new Date()) {
+  const y = date.getFullYear();
+  const m = date.getMonth() + 1;
+  const d = date.getDate();
+  return Number(y + (m < 10 ? "0" : "") + m + (d < 10 ? "0" : "") + d);
+}
+
 /** 时间字符串（20180427） */
 export function dateString(date = new Date()) {
   return getDateString("", date);
@@ -70,14 +112,20 @@ export function dateTimeChinese(date = new Date()) {
 }
 
 /** 生成随机数（系统调用） */
-export function randomString(num: number) {
+export function randomStringSync(num: number) {
   return randomBytes(num)
     .toString("hex")
     .substr(0, num);
 }
 
+const randomBytesAsync = promisify(randomBytes);
+/** 生成随机数（系统调用） */
+export function randomStringAsync(num: number) {
+  return randomBytesAsync(num).then(res => res.toString("hex").substr(0, num));
+}
+
 /** 返回随机字符串 */
-export function createNonceStr(length: number) {
+export function randomString(length: number) {
   const str = [];
   for (let i = 0; i < length; i++) {
     str.push(CHARTS.charAt(Math.floor(Math.random() * CHARTSL)));
@@ -86,33 +134,12 @@ export function createNonceStr(length: number) {
 }
 
 /** 返回随机数字 */
-export function createNonceNum(length: number) {
+export function randomNumber(length: number) {
   const str = [];
   for (let i = 0; i < length; i++) {
     str.push(NUMBER.charAt(Math.floor(Math.random() * NUMBERL)));
   }
   return str.join("");
-}
-
-/** 获取 timestamp */
-export function genTimestamp(after = 0) {
-  const now = new Date();
-  return parseInt(String((now.getTime() + after * 1000) / 1000), 10);
-}
-
-/** 获取日期字符串 */
-export function getDateString(pad = "", time = new Date()) {
-  return `${time.getFullYear()}${pad}${leftPad(time.getMonth() + 1, 2)}${pad}${leftPad(time.getDate(), 2)}`;
-}
-
-/** 获取时间字符串 */
-export function getTimeString(pad = "", time = new Date()) {
-  return `${time.getHours()}${pad}${leftPad(time.getMinutes(), 2)}${pad}${leftPad(time.getSeconds(), 2)}`;
-}
-
-/** 获取日期时间字符串 */
-export function getDateTimeString(pad = "", time = new Date()) {
-  return `${getDateString("-", time)} ${getTimeString(":", time)}`;
 }
 
 /** 格式化请求中的 Boolean 类型 */
@@ -230,14 +257,6 @@ export function lottory<T extends Record<string, any>>(gifts: T[], key = "rate")
     }
   }
   return null;
-}
-
-/** 今天的日期整数表示：20180913 */
-export function getDateNumber(date = new Date()): number {
-  const y = date.getFullYear();
-  const m = date.getMonth() + 1;
-  const d = date.getDate();
-  return Number(y + (m < 10 ? "0" : "") + m + (d < 10 ? "0" : "") + d);
 }
 
 /** 等待函数 */
