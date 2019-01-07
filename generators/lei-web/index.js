@@ -1,6 +1,6 @@
 const Generator = require('yeoman-generator');
 
-const { prompts, genPackage, nycInfo } = require('./npm');
+const { prompts, genPackage, nycInfo, lintInfo } = require('./npm');
 const utils = require('../../utils/utils');
 const config = require('./config');
 
@@ -10,6 +10,7 @@ module.exports = class extends Generator {
     this.isTS = false;
     this.isJS = false;
     this.isCov = false;
+    this.isLint = false;
     this.isDocker = false;
     this.lang = '';
     this.prop = {};
@@ -31,6 +32,7 @@ module.exports = class extends Generator {
     return this.prompt(prompts.call(this)).then(prop => {
       this.prop = prop;
       this.isCov = this.prop.nyc;
+      this.isLint = this.prop.lint;
       this.isDocker = this.prop.docker;
       this.lang = this.prop.language.toLocaleLowerCase();
       this.isTS = this.prop.language === 'TypeScript';
@@ -47,6 +49,9 @@ module.exports = class extends Generator {
       if (this.isCov) {
         packageInfo.nyc = nycInfo;
         packageInfo.scripts['test-cov'] = 'export NODE_ENV=test && nyc mocha test/api/test-*.ts';
+      }
+      if (this.isLint) {
+        Object.assign(packageInfo, lintInfo);
       }
       this.fs.extendJSON(this.destinationPath('package.json'), genPackage(packageInfo, this.prop));
     }
@@ -85,6 +90,10 @@ module.exports = class extends Generator {
     if (this.isTS) {
       this.npmInstall(config.getTSDeps(), { save: true, registry });
       this.npmInstall(config.getTSDevDeps(), { 'save-dev': true, registry });
+      if (this.isLint) {
+        const pkg = ['@commitlint/cli', '@commitlint/config-conventional', 'husky', 'lint-staged'];
+        this.npmInstall(pkg, { 'save-dev': true, registry });
+      }
       if (this.isCov) {
         this.npmInstall(['source-map-support', 'nyc'], { 'save-dev': true, registry });
       }

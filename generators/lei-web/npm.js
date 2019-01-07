@@ -80,6 +80,12 @@ exports.prompts = function prompts() {
     },
     {
       type: 'confirm',
+      name: 'lint',
+      message: 'use lint-staged and commitlint ?',
+      default: true,
+    },
+    {
+      type: 'confirm',
       name: 'docker',
       message: 'need add docker build ?',
       default: false,
@@ -133,4 +139,19 @@ exports.nycInfo = {
   include: ['src'],
   reporter: ['html', 'text', 'text-summary'],
   exclude: ['src/models/base.ts', 'src/index.ts', 'src/global', '**/*.d.ts', '**/*.gen.ts'],
+};
+
+exports.lintInfo = {
+  commitlint: {
+    extends: ['@commitlint/config-conventional'],
+  },
+  husky: {
+    hooks: {
+      'pre-commit': 'lint-staged',
+      'commit-msg': 'commitlint -E HUSKY_GIT_PARAMS',
+    },
+  },
+  'lint-staged': {
+    '*.(ts)': ['npm run format', 'git add'],
+  },
 };

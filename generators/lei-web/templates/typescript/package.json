@@ -15,7 +15,7 @@
   "dependencies": {},
   "devDependencies": {},
   "engine-strict": {
-    "node": ">=8.0"
+    "node": ">=10"
   },
   "prettier": {
     "printWidth": 120,
