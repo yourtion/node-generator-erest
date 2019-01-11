@@ -10,7 +10,7 @@ const projectName = pjson.name;
 
 const PORT = config.port || process.env.PORT || 3001;
 const HOST = config.host || process.env.HOST || "127.0.0.1";
-app.listen({ port: PORT, host: HOST }, () => {
+app.listen({ port: Number(PORT), host: HOST }, () => {
   console.log(`${projectName} is listening on http://${HOST}:${PORT}`);
   if (process.send) {
     process.send("ready");
