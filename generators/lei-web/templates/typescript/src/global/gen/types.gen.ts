@@ -50,3 +50,5 @@ export const TYPES = {
   /** 可为null整数 */
   NullableInteger: "NullableInteger",
 };
+
+export const SCHEMAS = {};

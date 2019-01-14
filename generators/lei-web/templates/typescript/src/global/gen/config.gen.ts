@@ -16,6 +16,8 @@ export interface IMysql {
   user: string;
   password: string;
   database: string;
+  charset: string;
+  connectionLimit: number;
 }
 
 export interface IConfig {
