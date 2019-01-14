@@ -38,6 +38,9 @@ module.exports = class extends Generator {
         this.dep.push('jsonwebtoken');
         this.devDep.push('@types/jsonwebtoken');
         break;
+      case 'session':
+        file = 'session.ts';
+        break;
       default:
         break;
     }
@@ -47,8 +50,12 @@ module.exports = class extends Generator {
   install() {
     const registry = 'https://registry.npm.taobao.org';
     if (this.isTS) {
-      this.npmInstall(this.dep, { save: true, registry });
-      this.npmInstall(this.devDep, { 'save-dev': true, registry });
+      if (this.dep.length > 0) {
+        this.npmInstall(this.dep, { save: true, registry });
+      }
+      if (this.devDep.length > 0) {
+        this.npmInstall(this.devDep, { 'save-dev': true, registry });
+      }
     }
   }
 };
