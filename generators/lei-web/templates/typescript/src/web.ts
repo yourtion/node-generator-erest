@@ -133,4 +133,13 @@ export class Response extends base.Response {
       list: data.list || [],
     });
   }
+
+  /** 文件下载功能 */
+  public download(filename: string, filetype: string, buffer: Buffer) {
+    this.type(filetype);
+    this.setHeader("Content-Description", "File Transfer");
+    this.setHeader("Content-Disposition", `attachment; filename=${filename}.${filetype}`);
+    this.setHeader("Content-Length", String(buffer.length));
+    this.end(buffer);
+  }
 }
