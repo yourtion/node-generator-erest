@@ -35,7 +35,7 @@ router.use("/", function(ctx) {
   }
 });
 
-router.use("/", component.bodyParser.json());
+router.use("/", component.bodyParser.json({ limit: "5m" }));
 router.use("/", component.bodyParser.urlencoded({ extended: true }));
 
 require("./routers");
