@@ -103,7 +103,6 @@ module.exports = class extends Generator {
       this.npmInstall(config.getJSDevDeps(), { 'save-dev': true, registry });
     }
     utils.mkdirSync(this.destinationPath('logs'));
-    utils.mkdirSync(this.destinationPath('src', 'controllers'));
     utils.mkdirSync(this.destinationPath('docs'));
   }
 };

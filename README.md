@@ -42,7 +42,6 @@ $ yo erest:lei-web
 │   ├── index.ts        ➡️ 服务启动入口文件 🔒
 │   ├── web.ts          ➡️ Web 框架基类，导出 Context 等
 │   ├── libs            ➡️ 类库文件夹，主要存放中间件、基础类库等内容
-│   ├── controllers     ➡️ 控制器文件夹
 │   ├── models          ➡️ 数据库模型文件夹
 │   │   ├── base.ts     ➡️ 数据模型基类 🔒
 │   │   └── index.ts    ➡️ models 导出文件夹 🔒
