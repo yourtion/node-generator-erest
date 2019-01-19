@@ -1,6 +1,6 @@
 {
   "name": "generator-erest",
-  "version": "0.16.3",
+  "version": "0.16.4",
   "description": "Yoman generator for erest. Easy build rest api",
   "files": [
     "utils",
@@ -31,11 +31,11 @@
   },
   "homepage": "https://github.com/yourtion/node-generator-erest#readme",
   "dependencies": {
-    "yeoman-generator": "^3.1.1"
+    "yeoman-generator": "^3.2.0"
   },
   "devDependencies": {
-    "eslint": "^5.9.0",
+    "eslint": "^5.12.0",
     "eslint-config-guo": "^0.8.0",
-    "prettier": "^1.15.2"
+    "prettier": "^1.15.3"
   }
 }
