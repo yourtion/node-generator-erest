@@ -9,7 +9,7 @@ const app = new Application();
 const router = new Router();
 
 import apiService from "./api";
-import { config, errors, logger } from "./global";
+import { config, errors, logger, leiWebLogMiddleware } from "./global";
 
 // 静态文件
 app.use("/h5", component.serveStatic(resolve(__dirname, "../public/h5")));
@@ -37,14 +37,15 @@ router.use("/", function(ctx) {
 
 router.use("/", component.bodyParser.json({ limit: "5mb" }));
 router.use("/", component.bodyParser.urlencoded({ extended: true }));
+router.use("/", leiWebLogMiddleware());
 
 require("./routers");
 apiService.bindRouterToApp(router, Router, apiService.checkerLeiWeb);
 
 router.use("/", (ctx, err: any) => {
   if (config.ispro && !err.show) {
-    const path = ctx.request.path || ctx.request.url;
-    logger.error(path, "params", ctx.request.$params);
+    const path = ctx.route || ctx.request.url;
+    ctx.log.error(path, "params", ctx.request.$params);
     ctx.response.err(new errors.InternalError(err.code));
   } else {
     ctx.response.err(err);
