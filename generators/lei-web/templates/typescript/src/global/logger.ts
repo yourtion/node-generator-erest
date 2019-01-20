@@ -3,7 +3,6 @@
  * @author Yourtion Guo <yourtion@gmail.com>
  */
 
-/* tslint:disable:unified-signatures */
 import { createWriteStream } from "fs";
 import pino from "pino";
 import { Writable } from "stream";
@@ -121,6 +120,7 @@ function _getLogger(name: string, level = defaultLevel) {
 export const systemLogger = _getLogger("system") as ILogger;
 export const webLogger = _getLogger("web") as ILogger;
 export const mysqlLogger = _getLogger("mysql") as ILogger;
+export const thirdLogger = _getLogger("third") as ILogger;
 
 export function getLogger(name: string, addtion: Record<string, any> = {}): ILogger {
   return (systemLogger as pino.Logger).child({ ...addtion, name }) as ILogger;
@@ -130,19 +130,26 @@ export function getSqlLogger(name: string, addtion: Record<string, any> = {}): I
   return (mysqlLogger as pino.Logger).child({ ...addtion, name }) as ILogger;
 }
 
-export function webMiddle(logger: ILogger, level: pino.Level = "trace") {
-  return (req: any, res: any, next?: any) => {
+export function getWebLogger(name: string, addtion: Record<string, any> = {}): ILogger {
+  return (webLogger as pino.Logger).child({ ...addtion, name }) as ILogger;
+}
+
+export function leiWebLogMiddleware(logger: ILogger = getWebLogger("respone"), level: pino.Level = "trace") {
+  return function(ctx: any) {
     const start = Date.now();
-    res.on("finish", () => {
+    ctx.onFinish(function() {
       const time = Date.now() - start;
-      if (res.statusCode >= 300) level = "info";
-      if (res.statusCode >= 400 || time > 1000) level = "warn";
-      if (res.statusCode >= 500) level = "error";
-      logger[level]("respone:", { route: req.originalUrl || req.url, code: res.statusCode, time });
+      const p = ctx.route.path || ctx.request.path;
+      const obj: any = { code: ctx.response.statusCode, time, reqId: ctx.$reqId };
+      if (obj.code >= 300) level = "info";
+      if (obj.code >= 400 || time > 1000) {
+        level = "warn";
+        Object.assign(obj, { params: ctx.request.params, query: ctx.request.query, body: ctx.request.body });
+      }
+      if (obj.code >= 500) level = "error";
+      logger[level](`[${ctx.request.method}] ${p}`, obj);
     });
-    if (next) {
-      next();
-    }
+    ctx.next();
   };
 }
 
