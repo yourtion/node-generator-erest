@@ -44,7 +44,7 @@ export function genResponses() {
       continue;
     }
     res.push(`export interface IResponse${n} {`);
-    for (const name of Object.keys(params.fields)) {
+    for (const name of Object.keys(params.fields || {})) {
       const param = schemaToInterface(name, params.fields[name]);
       res.push(param);
     }
