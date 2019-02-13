@@ -9,9 +9,13 @@ function schemaToInterface(name: string, schema: ISchemaType, isRequired = false
     res.push(`/** ${schema.comment} */`);
   }
   if (apiService.type.has(schema.type)) {
-    const type = apiService.type.get(schema.type);
-    let teType = type.info.tsType || "any";
-    res.push(`${name}${required ? "" : "?"}:${teType};`);
+    if (schema.type === "ENUM" && Array.isArray(schema.params)) {
+      res.push(`${name}${required ? "" : "?"}:${typeof schema.params[0]};`);
+    } else {
+      const type = apiService.type.get(schema.type);
+      let teType = type.info.tsType || "any";
+      res.push(`${name}${required ? "" : "?"}:${teType};`);
+    }
   } else {
     res.push(`${name}${required ? "" : "?"}:any`);
   }

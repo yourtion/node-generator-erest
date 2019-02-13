@@ -33,7 +33,7 @@ function convertFiled(field: string, nullable: boolean) {
   if (field.indexOf("int") > -1) {
     return nullable ? TYPES.NullableInteger : TYPES.Integer;
   }
-  if (field.indexOf("decimal") > -1) {
+  if (field.indexOf("decimal") > -1 || field.indexOf("float") > -1) {
     return TYPES.Float;
   }
   if (field === "timestamp") {
