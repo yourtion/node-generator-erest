@@ -152,6 +152,6 @@ exports.lintInfo = {
     },
   },
   'lint-staged': {
-    '*.(ts)': ['npm run format', 'git add'],
+    '*.(ts)': ['prettier --write "{src,scripts,test}/**/*.ts"', 'git add'],
   },
 };
