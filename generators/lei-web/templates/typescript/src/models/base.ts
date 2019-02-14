@@ -2,23 +2,21 @@
  * @file base model 基础模块
  * @author Yourtion Guo <yourtion@gmail.com>
  */
-import { Delete, Insert, MysqlInsert, QueryBuilder, Select, Update, QueryBuilderOptions } from "@blueshit/squel";
-import { config, errors, IConnectionPromise, mysql, squel, utils } from "../global";
+import Q, { QueryBuilder, AdvancedCondition, AdvancedUpdate } from "@leizm/sql";
+import { config, errors, IConnectionPromise, mysql, utils } from "../global";
 import { IPageParams, IPoolPromise } from "../global";
 import { BaseModel } from "../core";
 import { Context } from "../web";
 
-export { Delete, Insert, MysqlInsert, Select, Update, IPoolPromise };
-
-const SELETE_OPT = { autoQuoteTableNames: true, autoQuoteFieldNames: true };
+export { IPoolPromise };
 
 export interface IPageResult<T> {
   count: number;
   list: T[];
 }
 
-export type IRecord<K> = Record<string, any> & Partial<K>;
-export type IConditions<K> = Record<string, number | string | string[]> & Partial<K>;
+export type IRecord<K> = Partial<K> | Partial<Pick<AdvancedUpdate, keyof K>>;
+export type IConditions<K> = Partial<K> | Partial<Pick<AdvancedCondition, keyof K>>;
 export type IPrimary = string | number;
 export type Orders = Array<[string, boolean]>;
 export interface OkPacket {
@@ -43,13 +41,15 @@ export interface IJoinTable {
   /** 所需字段 */
   fields?: string[];
   /** 该表查询条件 */
-  where?: Record<string, any>;
+  where?: IConditions<any>;
 }
 
 /** 联表查询条件 */
 export interface IJoinOptions {
+  /** 别名 */
+  alias: string;
   /** 主表查询条件 */
-  conditions?: Record<string, any>;
+  where?: IConditions<any>;
   /** 查询字段 */
   fields?: string[];
   limit: number;
@@ -60,8 +60,10 @@ export interface IJoinOptions {
 
 /** 连表分页 */
 export interface IJoinPageOptions {
+  /** 别名 */
+  alias: string;
   /** 查询条件 */
-  conditions?: Record<string, any>;
+  where?: Record<string, any>;
   /** 所需字段 */
   fields?: string[];
   page: IPageParams;
@@ -71,34 +73,6 @@ export interface IJoinPageOptions {
 function removeUndefined(object: Record<string, any>) {
   Object.keys(object).forEach(key => object[key] === undefined && delete object[key]);
   return object;
-}
-
-/**
- * 解析 Where
- * @param {Object} sql Squel 对象
- * @param {Object} conditions 查询条件
- */
-function _parseWhere(sql: Select, conditions: Record<string, any>, alias?: string) {
-  Object.keys(conditions).forEach(k => {
-    if (k.indexOf("$") === 0) {
-      // 以 $ 开头直接解析
-      if (Array.isArray(conditions[k])) {
-        sql.where(conditions[k][0], ...conditions[k].slice(1));
-      } else {
-        sql.where(conditions[k]);
-      }
-    } else if (k.indexOf("#") !== -1) {
-      sql.where(`${k.replace("#", "")} like ?`, "%" + conditions[k] + "%");
-    } else if (k.indexOf("$") !== -1) {
-      sql.where(k.replace("$", ""), conditions[k]);
-    } else if (Array.isArray(conditions[k])) {
-      // 数组类型使用 in 方式
-      sql.where(`${alias ? alias + "." : ""}${k} in ?`, conditions[k]);
-    } else {
-      // 使用查询条件解析
-      sql.where(`${alias ? alias + "." : ""}${k} = ?`, conditions[k]);
-    }
-  });
 }
 
 /** 初始化参数 */
@@ -121,7 +95,6 @@ export default class Base<T> extends BaseModel {
   public connect = mysql;
   public fields: string[];
   public order?: string | Orders;
-  public _parseWhere = _parseWhere;
 
   /**
    * Creates an instance of Base.
@@ -162,38 +135,6 @@ export default class Base<T> extends BaseModel {
     }
   }
 
-  /** delete 构造 */
-  buildDelete(opt?: QueryBuilderOptions) {
-    return squel
-      .delete(opt)
-      .from(this.table)
-      .clone();
-  }
-
-  /** insert 构造 */
-  buildInsert(opt?: QueryBuilderOptions) {
-    return squel
-      .insert(opt)
-      .into(this.table)
-      .clone();
-  }
-
-  /** select 构造 */
-  buildSelect(opt?: QueryBuilderOptions) {
-    return squel
-      .select(opt)
-      .from(this.table)
-      .clone();
-  }
-
-  /** update 构造 */
-  buildUpdate(opt?: QueryBuilderOptions) {
-    return squel
-      .update(opt)
-      .table(this.table)
-      .clone();
-  }
-
   /**
    * 输出 SQL Debug
    * @param {String} name Debug 前缀
@@ -211,15 +152,27 @@ export default class Base<T> extends BaseModel {
    * @param sql 数据库查询语句
    * @param connection 数据库连接
    */
-  public query(sql: QueryBuilder | string, connection: IConnectionPromise | IPoolPromise = mysql) {
+  public async query(sql: QueryBuilder | string, connection: IConnectionPromise | IPoolPromise = mysql) {
     const logger = (connection as IConnectionPromise).debug ? (connection as IConnectionPromise) : this.log;
-    if (typeof sql === "string") {
-      logger.debug!(sql);
-      return connection.queryAsync(sql).catch(err => this.errorHandler(err));
+    const s = typeof sql === "string" ? sql : sql.build();
+    logger.debug!(s);
+    const startTime = Date.now();
+    try {
+      const ret = await connection.queryAsync(s);
+      return ret;
+    } catch (err) {
+      return this.errorHandler(err);
+    } finally {
+      const spent = Date.now() - startTime;
+      if (config.logSlowQuery && spent > config.logSlowQuery) {
+        this.log.warn("slow query: [%dms] %s", spent, s);
+      }
     }
-    const { text, values } = sql.toParam();
-    logger.debug!(text, values);
-    return connection.queryAsync(text, values).catch(err => this.errorHandler(err));
+  }
+
+  /** QueryBuilder 生成器 */
+  public builder() {
+    return Q.table<T>(this.table);
   }
 
   /** 清空表 */
@@ -228,12 +181,9 @@ export default class Base<T> extends BaseModel {
   }
 
   public _count(conditions: IConditions<T> = {}) {
-    const sql = squel
-      .select()
-      .from(this.table)
-      .field("COUNT(*)", "c");
-    _parseWhere(sql, conditions);
-    return sql;
+    return Q.table<T>(this.table)
+      .count("c")
+      .where(conditions);
   }
 
   public countRaw(connect: IConnectionPromise | IPoolPromise, conditions: IConditions<T> = {}): Promise<number> {
@@ -251,13 +201,10 @@ export default class Base<T> extends BaseModel {
     if (primary === undefined) {
       throw new Error("`primary` 不能为空");
     }
-    const sql = squel
-      .select(SELETE_OPT)
-      .from(this.table)
-      .where(this.primaryKey + " = ?", primary)
+    return Q.table<T>(this.table)
+      .select(...fields)
+      .where(this.primaryKey + " = ?", [primary])
       .limit(1);
-    fields.forEach(f => sql.field(f));
-    return sql;
   }
 
   public getByPrimaryRaw(
@@ -275,39 +222,35 @@ export default class Base<T> extends BaseModel {
     return this.getByPrimaryRaw(this.connect, primary, fields);
   }
 
-  public _getOneByField(object: IRecord<T> = {}, fields = this.fields) {
-    const sql = squel
-      .select(SELETE_OPT)
-      .from(this.table)
+  public _getOneByField(conditions: IConditions<T> = {}, fields = this.fields) {
+    return Q.table<T>(this.table)
+      .select(...fields)
+      .where(conditions)
       .limit(1);
-    fields.forEach(f => sql.field(f));
-    _parseWhere(sql, object);
-    return sql;
   }
 
   public getOneByFieldRaw(
     connect: IConnectionPromise | IPoolPromise,
-    object: IRecord<T> = {},
+    conditions: IConditions<T> = {},
     fields = this.fields
   ): Promise<T | undefined> {
-    return this.query(this._getOneByField(object, fields), connect).then((res: T[]) => res && res[0]);
+    return this.query(this._getOneByField(conditions, fields), connect).then((res: T[]) => res && res[0]);
   }
 
   /**
    * 根据查询条件获取一条记录
    */
-  public getOneByField(object: IRecord<T> = {}, fields = this.fields) {
-    return this.getOneByFieldRaw(this.connect, object, fields);
+  public getOneByField(conditions: IConditions<T> = {}, fields = this.fields) {
+    return this.getOneByFieldRaw(this.connect, conditions, fields);
   }
 
   public _deleteByPrimary(primary: IPrimary, limit = 1) {
     if (primary === undefined) {
       throw new Error("`primary` 不能为空");
     }
-    return squel
+    return Q.table<T>(this.table)
       .delete()
-      .from(this.table)
-      .where(this.primaryKey + " = ?", primary)
+      .where(this.primaryKey + " = ?", [primary])
       .limit(limit);
   }
 
@@ -323,14 +266,10 @@ export default class Base<T> extends BaseModel {
   }
 
   public _deleteByField(conditions: IConditions<T>, limit = 1) {
-    const sql = squel
+    return Q.table<T>(this.table)
       .delete()
-      .from(this.table)
+      .where(conditions)
       .limit(limit);
-    Object.keys(conditions).forEach(k =>
-      sql.where(k + (Array.isArray(conditions[k]) ? " in" : " =") + " ? ", conditions[k])
-    );
-    return sql;
   }
 
   public deleteByFieldRaw(
@@ -363,10 +302,7 @@ export default class Base<T> extends BaseModel {
 
   public _insert(object: Partial<T> = {}) {
     removeUndefined(object);
-    return squel
-      .insert()
-      .into(this.table)
-      .setFields(object);
+    return Q.table<T>(this.table).insert(object);
   }
 
   public insertRaw(connect: IConnectionPromise | IPoolPromise, object: Partial<T> = {}): Promise<OkPacket> {
@@ -382,10 +318,7 @@ export default class Base<T> extends BaseModel {
 
   public _batchInsert(array: Partial<T>[]) {
     array.forEach(o => removeUndefined(o));
-    return squel
-      .insert()
-      .into(this.table)
-      .setFieldsRows(array);
+    return Q.table<T>(this.table).insert(array);
   }
 
   public batchInsertRaw(connect: IConnectionPromise | IPoolPromise, array: Partial<T>[]) {
@@ -399,45 +332,20 @@ export default class Base<T> extends BaseModel {
     return this.batchInsertRaw(this.connect, array);
   }
 
-  public _updateByField(conditions: IConditions<T>, objects: IRecord<T>, raw = false) {
+  public _updateByField(conditions: IConditions<T>, objects: IRecord<T>) {
     if (!conditions || Object.keys(conditions).length < 1) {
       throw new Error("`key` 不能为空");
     }
 
     removeUndefined(objects);
-    const sql = squel.update().table(this.table);
-    if (!raw) {
-      Object.keys(conditions).forEach(k => sql.where(`${k} = ?`, conditions[k]));
-      return sql.setFields(objects);
-    }
-    Object.keys(conditions).forEach(k => {
-      if (k.indexOf("$") === 0) {
-        sql.where(conditions[k].toString());
-      } else {
-        sql.where(`${k} = ?`, conditions[k]);
-      }
-    });
-    Object.keys(objects).forEach(k => {
-      if (k.indexOf("$") === 0) {
-        if (Array.isArray(objects[k])) {
-          sql.set(objects[k][0], ...objects[k].slice(1));
-        } else {
-          sql.set(objects[k]);
-        }
-      } else {
-        sql.set(`${k} = ?`, objects[k]);
-      }
-    });
-    return sql;
+    return Q.table<T>(this.table)
+      .update()
+      .where(conditions)
+      .set(objects);
   }
 
-  public updateByFieldRaw(
-    connect: IConnectionPromise | IPoolPromise,
-    conditions: IConditions<T>,
-    objects: IRecord<T>,
-    raw = false
-  ) {
-    return this.query(this._updateByField(conditions, objects, raw), connect).then(
+  public updateByFieldRaw(connect: IConnectionPromise | IPoolPromise, conditions: IConditions<T>, objects: IRecord<T>) {
+    return this.query(this._updateByField(conditions, objects), connect).then(
       (res: OkPacket) => res && res.affectedRows
     );
   }
@@ -445,40 +353,32 @@ export default class Base<T> extends BaseModel {
   /**
    * 根据查询条件更新记录
    */
-  public updateByField(conditions: IConditions<T>, objects: IRecord<T>, raw = false) {
-    return this.updateByFieldRaw(this.connect, conditions, objects, raw);
+  public updateByField(conditions: IConditions<T>, objects: IRecord<T>) {
+    return this.updateByFieldRaw(this.connect, conditions, objects);
   }
 
   /**
    * 根据主键更新记录
    */
-  public updateByPrimary(primary: IPrimary, objects: IRecord<T>, raw = false) {
+  public updateByPrimary(primary: IPrimary, objects: IRecord<T>) {
     if (primary === undefined) {
       throw new Error("`primary` 不能为空");
     }
-    const condition: IConditions<T> = {};
-    condition[this.primaryKey] = primary;
-    return this.updateByField(condition, objects, raw);
+    return this.updateByField({ [this.primaryKey]: primary } as any, objects);
   }
 
-  public _createOrUpdate(objects: IRecord<T>, update = Object.keys(objects)) {
+  public _createOrUpdate(objects: Partial<T> | Array<Partial<T>>, update: IRecord<T>) {
     removeUndefined(objects);
-    const sql = squel.insert().into(this.table);
-    sql.setFields(objects);
-    update.forEach(k => {
-      if (Array.isArray(objects[k])) {
-        sql.onDupUpdate(objects[k][0], objects[k][1]);
-      } else if (objects[k] !== undefined) {
-        sql.onDupUpdate(k, objects[k]);
-      }
-    });
-    return sql;
+    return Q.table<T>(this.table)
+      .insert(objects as any)
+      .onDuplicateKeyUpdate()
+      .set(update);
   }
 
   public createOrUpdateRaw(
     connect: IConnectionPromise | IPoolPromise,
-    objects: IRecord<T>,
-    update = Object.keys(objects)
+    objects: Partial<T> | Array<Partial<T>>,
+    update: IRecord<T>
   ): Promise<OkPacket> {
     return this.query(this._createOrUpdate(objects, update), connect);
   }
@@ -486,7 +386,7 @@ export default class Base<T> extends BaseModel {
   /**
    * 创建一条记录，如果存在就更新
    */
-  public createOrUpdate(objects: IRecord<T>, update = Object.keys(objects)) {
+  public createOrUpdate(objects: Partial<T> | Array<Partial<T>>, update: IRecord<T>) {
     return this.createOrUpdateRaw(this.connect, objects, update);
   }
 
@@ -495,14 +395,14 @@ export default class Base<T> extends BaseModel {
       throw new Error("`primary` 不能为空");
     }
 
-    const sql = squel.update().table(this.table);
+    const sql = Q.table<T>(this.table).update();
     if (Array.isArray(primary)) {
-      sql.where(this.primaryKey + " in ?", primary);
+      sql.where({ [this.primaryKey]: { $in: primary } } as any);
     } else {
-      sql.where(this.primaryKey + " = ?", primary);
+      sql.where({ [this.primaryKey]: primary } as any);
     }
     fields.forEach(f => {
-      sql.set(`${f[0]} = ${f[0]} + ${f[1]}`);
+      sql.set({ [f[0]]: { $incr: f[1] } } as any);
     });
     return sql;
   }
@@ -531,20 +431,18 @@ export default class Base<T> extends BaseModel {
     asc = true
   ) {
     removeUndefined(conditions);
-    const sql = squel
-      .select(SELETE_OPT)
-      .from(this.table)
-      .offset(offset)
+    const sql = Q.table<T>(this.table)
+      .select(...fields)
+      .where(conditions)
+      .skip(offset)
       .limit(limit);
-    fields.forEach(f => sql.field(f));
-    _parseWhere(sql, conditions);
     if (order) {
       if (order instanceof Array) {
         order.forEach(([_order, _direction = true]) => {
-          sql.order(_order, _direction);
+          sql.orderBy(`${_order} ${_direction ? "ASC" : "DESC"}`);
         });
       } else {
-        sql.order(order as string, asc);
+        sql.orderBy(`${order} ${asc ? "ASC" : "DESC"}`);
       }
     }
     return sql;
@@ -582,66 +480,6 @@ export default class Base<T> extends BaseModel {
   ): Promise<T[]>;
   public list(conditions = {}, fields = this.fields, ...args: any[]) {
     return this.listRaw(this.connect, conditions, fields, ...args);
-  }
-
-  public _search(
-    keyword: string,
-    search: string[],
-    fields = this.fields,
-    limit = 10,
-    offset = 0,
-    order = this.order,
-    asc = true
-  ) {
-    if (!keyword || search.length < 1) {
-      throw new Error("`keyword` | `search` 不能为空");
-    }
-    const sql = squel
-      .select(SELETE_OPT)
-      .from(this.table)
-      .offset(offset)
-      .limit(limit);
-    fields.forEach(f => sql.field(f));
-    const exp = squel.expr();
-    search.forEach(k => {
-      exp.or(`${k} like ?`, "%" + keyword + "%");
-    });
-    sql.where(exp);
-    if (order) {
-      if (order instanceof Array) {
-        order.forEach(([_order, _direction = true]) => {
-          sql.order(_order, _direction);
-        });
-      } else {
-        sql.order(order as string, !!asc);
-      }
-    }
-    return sql;
-  }
-
-  /**
-   * 根据关键词进行搜索
-   */
-  public search(keyword: string, search: string[], fields?: string[], pages?: IPageParams): Promise<T[]>;
-  /**
-   * 根据关键词进行搜索
-   */
-  public search(
-    keyword: string,
-    search: string[],
-    fields?: string[],
-    limit?: number,
-    offset?: number,
-    order?: string,
-    asc?: boolean
-  ): Promise<T[]>;
-  public search(keyword: string, search: string[], fields = this.fields, ...args: any[]): Promise<T[]> {
-    if (args.length === 1 && typeof args[0] === "object") {
-      return this.query(
-        this._search(keyword, search, fields, args[0].limit, args[0].offset, args[0].order, args[0].asc)
-      );
-    }
-    return this.query(this._search(keyword, search, fields, ...args));
   }
 
   /**
@@ -684,52 +522,55 @@ export default class Base<T> extends BaseModel {
     try {
       const result = await func(connection);
       await connection.commitAsync(); // 提交事务
-      debug(`result: ${result}`);
+      debug("result:", result);
       debug("Transaction Done");
       return result;
     } catch (err) {
       // 回滚错误
       await connection.rollbackAsync();
-      debug(`Transaction Rollback ${err.code}`);
+      debug("Transaction Rollback", err);
       this.errorHandler(err);
     } finally {
       connection.release();
     }
   }
 
-  public _join(alias: string, options: IJoinOptions, isCount: boolean, ...tables: IJoinTable[]) {
-    const sql = squel.select().from(this.table, alias);
+  public _join(options: IJoinOptions, isCount: boolean, ...tables: IJoinTable[]) {
+    const sql = Q.table<T>(this.table).as(options.alias);
+    if (isCount) {
+      sql.count("c");
+    } else {
+      sql.select();
+    }
     for (const table of tables) {
-      sql.left_join(table.table, table.alias, table.condition);
-      if (!isCount && table.fields) {
-        table.fields.forEach((f: any) => sql.field(`${table.alias}.${f}`));
+      if (isCount) {
+        sql.leftJoin(table.table);
+      } else {
+        sql.leftJoin(table.table, table.fields);
       }
+      sql.as(table.alias).on(table.condition);
       if (table.where) {
         removeUndefined(table.where);
-        _parseWhere(sql, table.where, table.alias);
+        sql.where(table.where);
       }
     }
-    if (!isCount && options.fields) {
-      options.fields.forEach((f: any) => sql.field(`${alias}.${f}`));
-    }
-    if (options.conditions) {
-      removeUndefined(options.conditions);
-      _parseWhere(sql, options.conditions, alias);
+    if (options.where) {
+      removeUndefined(options.where);
+      sql.where(options.where);
     }
     if (!isCount && options.order) {
       const { order, asc } = options;
       if (order instanceof Array) {
         order.forEach(([_order, _direction = true]) => {
-          sql.order(`${alias}.${_order}`, _direction);
+          sql.orderBy(`${options.alias}.${_order}  ${_direction ? "ASC" : "DESC"}`);
         });
       } else {
-        sql.order(`${alias}.${order}`, !!asc);
+        sql.orderBy(`${options.alias}.${order} ${asc ? "ASC" : "DESC"}`);
       }
     }
+    if (!isCount && options.fields) sql.fields(...options.fields);
     if (!isCount && options.limit > 0) {
       sql.offset(options.offset).limit(options.limit);
-    } else if (isCount) {
-      sql.field("COUNT(*)", "c");
     }
     return sql;
   }
@@ -737,23 +578,24 @@ export default class Base<T> extends BaseModel {
   /**
    * 连表列表查询
    */
-  public join(alias: string, options: IJoinOptions, ...tables: IJoinTable[]) {
-    return this.query(this._join(alias, options, false, ...tables));
+  public join(options: IJoinOptions, ...tables: IJoinTable[]) {
+    return this.query(this._join(options, false, ...tables));
   }
   /**
    * 连表分页
    */
-  public joinPage(alias: string, options: IJoinPageOptions, ...tables: IJoinTable[]) {
+  public joinPage(options: IJoinPageOptions, ...tables: IJoinTable[]) {
     const opt = {
-      conditions: options.conditions,
+      alias: options.alias,
+      where: options.where,
       fields: options.fields,
       limit: options.page.limit,
       offset: options.page.offset,
       order: options.page.order,
       asc: options.page.asc,
     };
-    const listSql = this.query(this._join(alias, opt, false, ...tables));
-    const countSql = this.query(this._join(alias, opt, true, ...tables)).then((res: any) => res && res[0] && res[0].c);
+    const listSql = this.query(this._join(opt, false, ...tables));
+    const countSql = this.query(this._join(opt, true, ...tables)).then(res => res && res[0] && res[0].c);
     return Promise.all([listSql, countSql]).then(([list, count = 0]) => list && { count, list });
   }
 }
