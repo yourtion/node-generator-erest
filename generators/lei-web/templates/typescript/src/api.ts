@@ -22,7 +22,7 @@ const INFO = {
 };
 
 const GROUPS = {
-  Base: "基础",
+  Utils: "工具",
 };
 
 export type HANDLER = (ctx: Context, err?: any) => void;

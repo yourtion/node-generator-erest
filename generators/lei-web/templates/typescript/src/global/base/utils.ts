@@ -266,6 +266,26 @@ export function sleep(ms: number) {
   });
 }
 
+/** 第几周（[2018, 5]）ISO 8601 */
+export function getWeekNumber(day = new Date()) {
+  // 拷贝一份时间防止修改到参数
+  const d = new Date(Date.UTC(day.getFullYear(), day.getMonth(), day.getDate()));
+  // 获取最近的 Thursday: current date + 4 - current day number
+  // 将周日设置为第7天
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  // 获取新年第一天
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  // 计算两个 Thursday 之间的差
+  const weekNo = Math.ceil(((d.valueOf() - yearStart.valueOf()) / 86400000 + 1) / 7);
+  return [d.getUTCFullYear(), weekNo];
+}
+
+/** 今年周数（201805） */
+export function getYearAndWeek(day = new Date()) {
+  const week = getWeekNumber(day);
+  return `${week[0]}${leftPad(week[1], 2)}`;
+}
+
 export const existsAsync = promisify(exists);
 export const readFileAsync = promisify(readFile);
 export const writeFileAsync = promisify(writeFile);

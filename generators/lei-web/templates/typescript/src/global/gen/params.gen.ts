@@ -1,2 +1,2 @@
 /** 测试Index 参数 */
-export interface IParamsGetBaseIndex {}
+export interface IParamsGetUtilsIndex {}
