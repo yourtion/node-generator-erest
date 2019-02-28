@@ -13,6 +13,10 @@ try {
 } catch (error) {
   debug("prettierConfig empty");
 }
+if(Object.keys(prettierConfig).length === 0) {
+  const packageInfo = require("../package.json")
+  prettierConfig = packageInfo.prettier || {};
+}
 
 export async function prettierSaveFile(filepath: string, content: string, overwrite = false) {
   if (!overwrite) {
