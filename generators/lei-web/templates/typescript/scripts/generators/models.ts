@@ -83,7 +83,7 @@ function convertTable(table: any) {
   let key;
   for (const row of table) {
     fields.push(row.Field);
-    if (row.Key === "PRI" && row.Field !== "id") {
+    if (row.Key === "PRI") {
       key = row.Field;
     }
     if (row.Comment) {
@@ -117,7 +117,7 @@ function genFile(
   tableName: string,
   tableCommet: string,
   schema: any,
-  fields: Record<string, any>,
+  fields: string[],
   interfaces: string[],
   key: string
 ) {
@@ -128,21 +128,29 @@ function genFile(
 
   // 生成模型
   result.modelNames.push(tableCamelCase);
+  const keys: Record<string, string> = {};
+  for(const f of fields) {
+    keys[underscore2camelCase(f)] = f;
+  }
   // 生成模型所需文件
   result.tableGen.push(`
     /** ${tableCommet} */
     export interface IModels${tableString} {\n  ${interfaces.join("\n  ")}\n  }
     /** ${tableCommet} Schema */
     export const ${tableCamelCase}Schema = ${util.inspect(schema, false, null)};
+    /** ${tableCommet} Keys */
+    export const ${tableCamelCase}Keys = ${util.inspect(keys, false, null).replace(/\n/g, "")};
     /** ${tableCommet} Fields */
     export const ${tableCamelCase}Fields = ${util.inspect(fields, false, null).replace(/\n/g, "")};
     /** ${tableCommet} Table */
     export const ${tableCamelCase}Table = "${tableName}";
+    /**  ${tableCommet} PRI */
+    export const ${tableCamelCase}PRI = "${key && key}";
   `);
 
   let opt = `{fields: ${tableCamelCase}Fields}`;
   if (key) {
-    opt = `{fields: ${tableCamelCase}Fields, primaryKey: "${key}"}`;
+    opt = `{fields: ${tableCamelCase}Fields, primaryKey: ${tableCamelCase}PRI}`;
   }
   result.models.push(tableString + "Model");
   result.tables.push(tableCamelCase);
@@ -155,13 +163,14 @@ function genFile(
   }`);
 
   // 生成 Models 文件
+  const imp = `IModels${tableString}, ${tableCamelCase}Table, ${tableCamelCase}Fields, ${tableCamelCase}PRI`;
   result.schemas[tableName] = `
     /**
      * @file ${tableCamelCase} Model ${tableCommet}
      * @author Yourtion Guo <yourtion@gmail.com>
      */
 
-    import {IModels${tableString}, ${tableCamelCase}Table, ${tableCamelCase}Fields} from "../global/gen/models.gen";
+    import {${imp}} from "../global/gen/models.gen";
     import Base from "./base";
     import { Context } from "../web";
 
