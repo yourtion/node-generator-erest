@@ -129,7 +129,7 @@ function genFile(
   // 生成模型
   result.modelNames.push(tableCamelCase);
   const keys: Record<string, string> = {};
-  for(const f of fields) {
+  for (const f of fields) {
     keys[underscore2camelCase(f)] = f;
   }
   // 生成模型所需文件

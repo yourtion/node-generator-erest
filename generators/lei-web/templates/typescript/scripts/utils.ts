@@ -13,8 +13,8 @@ try {
 } catch (error) {
   debug("prettierConfig empty");
 }
-if(Object.keys(prettierConfig).length === 0) {
-  const packageInfo = require("../package.json")
+if (Object.keys(prettierConfig).length === 0) {
+  const packageInfo = require("../package.json");
   prettierConfig = packageInfo.prettier || {};
 }
 
