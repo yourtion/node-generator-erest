@@ -5,8 +5,8 @@ import { merge } from "lodash";
 import path from "path";
 import util from "util";
 
-import apiService from "../../src/api";
 import app from "../../src/app";
+import apiService from "../../src/api";
 import { utils } from "../../src/global";
 import prettier from "prettier";
 import APITest from "./api.gen";
