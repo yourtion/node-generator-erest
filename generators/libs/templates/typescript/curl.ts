@@ -1,4 +1,4 @@
-import { request as httpRequest, RequestOptions, Agent as httpAgent } from "http";
+import { request as httpRequest, RequestOptions, Agent as httpAgent, IncomingMessage } from "http";
 import { request as httpsRequest, Agent as httpsAgent } from "https";
 import { URL } from "url";
 
@@ -14,6 +14,13 @@ export interface ICURLOpt {
   timeout?: number;
   json?: boolean;
   headers?: Record<string, string>;
+}
+
+export interface IResponse {
+  spent: number;
+  code: number;
+  body: string;
+  res: IncomingMessage;
 }
 
 const AGENT_OPTION = { keepAlive: true };
@@ -32,12 +39,12 @@ export default class CURL {
     const o = Object.assign({}, opt);
     if (o.baseUrl) {
       const url = new URL(o.baseUrl);
-      o.isHttps = url.protocol.indexOf("https") > 0;
-      o.host = url.host;
+      o.isHttps = o.isHttps !== undefined ? o.isHttps : url.protocol.indexOf("https") > 0;
+      o.host = o.host || url.host;
       o.port = Number(o.port);
-      o.basePath = url.pathname;
+      o.basePath = o.basePath || url.pathname;
     }
-    this.isHttps = o.isHttps || false;
+    this.isHttps = o.isHttps !== undefined ? o.isHttps : false;
     this.hostname = o.host || "";
     this.port = o.port || (this.isHttps ? 443 : 80);
     this.basePath = o.basePath || "";
@@ -47,16 +54,17 @@ export default class CURL {
     this.headers = o.headers || (this.json ? { "Content-Type": "application/json; charset=utf8" } : {});
   }
 
-  rawRequest(opt: RequestOptions, body?: any): Promise<any> {
+  rawRequest(opt: RequestOptions, body?: any): Promise<IResponse> {
+    const startTime = Date.now();
     return new Promise((resolve, reject) => {
       const request = this.isHttps ? httpsRequest : httpRequest;
       const req = request(opt, res => {
         const buffers: any[] = [];
         res.on("data", chunk => buffers.push(chunk));
         res.on("end", () => {
+          const spent = Date.now() - startTime;
           const body = Buffer.concat(buffers).toString("utf8");
-          if (res.statusCode !== 200) return reject({ code: res.statusCode, body, res });
-          return resolve(body);
+          return resolve({ spent, code: res.statusCode || -1, body, res });
         });
       });
       req.on("error", err => reject(err));
@@ -80,16 +88,30 @@ export default class CURL {
     } as RequestOptions;
     if (opt) Object.assign(options, opt);
     const res = await this.rawRequest(options, body);
-    return this.json ? JSON.parse(res) : res;
+    const response = { ok: res.code === 200, code: res.code, data: res.body, spent: res.spent };
+    if (response.ok && this.json) {
+      response.data = JSON.parse(res.body);
+    }
+    return response;
   }
 
-  public get(path: string, headers?: Record<string, any>) {}
+  public get(path: string, headers?: Record<string, any>) {
+    return this.request("GET", path, headers);
+  }
 
-  public post(path: string, data: any, headers?: Record<string, any>) {}
+  public post(path: string, data: any, headers?: Record<string, any>) {
+    return this.request("POST", path, headers, data);
+  }
 
-  public put(path: string, data: any, headers?: Record<string, any>) {}
+  public put(path: string, data: any, headers?: Record<string, any>) {
+    return this.request("PUT", path, headers, data);
+  }
 
-  public delete(path: string, headers?: Record<string, any>) {}
+  public delete(path: string, headers?: Record<string, any>) {
+    return this.request("DELETE", path, headers);
+  }
 
-  public head(path: string, headers?: Record<string, any>) {}
+  public head(path: string, headers?: Record<string, any>) {
+    return this.request("HEAD", path, headers);
+  }
 }
