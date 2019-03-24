@@ -3,6 +3,10 @@ import { request as httpsRequest, Agent as httpsAgent } from "https";
 import { URL } from "url";
 
 export type Agent = httpsAgent | httpAgent;
+export type IReqOption = RequestOptions & { body?: any };
+export type IBeforeRoute = (opt: IReqOption) => IReqOption;
+export type IAfterRoute = (response: IResponse, opt: IReqOption) => { ok: boolean; data: any };
+export type IOnError = (err: Error, opt: IReqOption) => void;
 
 export interface ICURLOptBase {
   /** 请求的 Agent */
@@ -11,6 +15,9 @@ export interface ICURLOptBase {
   timeout?: number;
   /** 默认请求头信息 */
   headers?: Record<string, string>;
+  beforeRequest?: IBeforeRoute;
+  afterRequest?: IAfterRoute;
+  onError?: IOnError;
 }
 
 export interface ICURLOptHost extends ICURLOptBase {
@@ -41,6 +48,15 @@ export interface IResponse {
 const AGENT_OPTION = { keepAlive: true };
 const NOOP = (...args: any[]) => {};
 
+function DEFAULT_BEFOR(opt: IReqOption) {
+  return opt;
+}
+
+function DEFAULT_AFTER(response: IResponse) {
+  const ok = response.code === 200;
+  return { ok, data: response.body };
+}
+
 export default class CURL {
   private isHttps: boolean;
   private hostname: string;
@@ -49,10 +65,10 @@ export default class CURL {
   private basePath: string;
   private timeout: number;
   private headers: Record<string, string>;
-  public getReqId: () => string;
-  public beforeRequest: (opt: RequestOptions, body?: any) => { opt: RequestOptions; body?: any };
-  public afterRequest: (response: IResponse, opt: RequestOptions, body?: any) => { ok: boolean; data: any };
-  public onError: (err: Error, opt: RequestOptions, body?: any) => void = NOOP;
+  public getReqId: () => string = () => "";
+  public beforeRequest: IBeforeRoute;
+  public afterRequest: IAfterRoute;
+  public onError: IOnError;
 
   constructor(opt: ICURLOpt) {
     const o = Object.assign({}, opt) as ICURLOptHost & ICURLOptUrl;
@@ -71,17 +87,13 @@ export default class CURL {
     this.timeout = o.timeout || 5000;
     this.headers = o.headers || { "Content-Type": "application/json; charset=utf8" };
     this.getReqId = () => "";
-    this.beforeRequest = (opt: RequestOptions, body?: any) => {
-      return { opt, body };
-    };
-    this.afterRequest = (response: IResponse) => {
-      const ok = response.code === 200;
-      return { ok, data: response.body };
-    };
+    this.beforeRequest = opt.beforeRequest || DEFAULT_BEFOR;
+    this.afterRequest = opt.afterRequest || DEFAULT_AFTER;
+    this.onError = opt.onError || NOOP;
   }
 
-  rawRequest(option: RequestOptions, bodyData?: any): Promise<IResponse> {
-    const { opt, body } = this.beforeRequest(option, bodyData);
+  rawRequest(option: IReqOption): Promise<IResponse> {
+    const opt = this.beforeRequest(option);
     const startTime = Date.now();
     return new Promise((resolve, reject) => {
       const request = this.isHttps ? httpsRequest : httpRequest;
@@ -95,11 +107,11 @@ export default class CURL {
         });
       });
       req.on("error", err => {
-        this.onError(err, opt, body);
+        this.onError(err, opt);
         reject(err);
       });
-      if (body) {
-        req.end(typeof body === "object" ? JSON.stringify(body) : body);
+      if (opt.body) {
+        req.end(typeof opt.body === "object" ? JSON.stringify(opt.body) : opt.body);
       } else {
         req.end();
       }
@@ -115,10 +127,11 @@ export default class CURL {
       method,
       path: this.basePath + path,
       headers: Object.assign({ "X-Request-Id": this.getReqId() }, headers || {}, this.headers),
+      body,
     } as RequestOptions;
     if (opt) Object.assign(options, opt);
-    const res = await this.rawRequest(options, body);
-    const { ok, data } = this.afterRequest(res, options, body);
+    const res = await this.rawRequest(options);
+    const { ok, data } = this.afterRequest(res, options);
     return { ok, code: res.code, data, spent: res.spent };
   }
 
