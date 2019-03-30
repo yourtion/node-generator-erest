@@ -1,9 +1,10 @@
 import { request as httpRequest, RequestOptions, Agent as httpAgent, IncomingMessage } from "http";
 import { request as httpsRequest, Agent as httpsAgent } from "https";
 import { URL } from "url";
+import querystring from "querystring";
 
 export type Agent = httpsAgent | httpAgent;
-export type IReqOption = RequestOptions & { body?: any };
+export type IReqOption = RequestOptions & { body?: any; qs?: Record<string, any> };
 export type IBeforeRoute = (opt: IReqOption) => IReqOption;
 export type IAfterRoute = (response: IResponse, opt: IReqOption) => { ok: boolean; data: any };
 export type IOnError = (err: Error, opt: IReqOption) => void;
@@ -93,6 +94,16 @@ export default class CURL {
   }
 
   rawRequest(option: IReqOption): Promise<IResponse> {
+    if (option.qs) {
+      if (option.path && option.path.indexOf("?") > -1) {
+        const p = option.path.split("?");
+        const q = querystring.parse(p[1] || "");
+        Object.assign(q, option.qs);
+        option.path = `${p[0]}?${querystring.stringify(q)}`;
+      } else {
+        option.path = `${option.path || "/"}?${querystring.stringify(option.qs)}`;
+      }
+    }
     const opt = this.beforeRequest(option);
     const startTime = Date.now();
     return new Promise((resolve, reject) => {
@@ -118,7 +129,7 @@ export default class CURL {
     });
   }
 
-  async request(method: string, path: string, headers?: Record<string, any>, body?: any, opt?: RequestOptions) {
+  async request(method: string, path: string, headers?: Record<string, any>, opt?: IReqOption) {
     const options = {
       hostname: this.hostname,
       port: this.port,
@@ -127,7 +138,6 @@ export default class CURL {
       method,
       path: this.basePath + path,
       headers: Object.assign({ "X-Request-Id": this.getReqId() }, headers || {}, this.headers),
-      body,
     } as RequestOptions;
     if (opt) Object.assign(options, opt);
     const res = await this.rawRequest(options);
@@ -135,16 +145,16 @@ export default class CURL {
     return { ok, code: res.code, data, spent: res.spent };
   }
 
-  public get(path: string, headers?: Record<string, any>) {
-    return this.request("GET", path, headers);
+  public get(path: string, qs?: Record<string, any>, headers?: Record<string, any>) {
+    return this.request("GET", path, headers, { qs });
   }
 
   public post(path: string, data: any, headers?: Record<string, any>) {
-    return this.request("POST", path, headers, data);
+    return this.request("POST", path, headers, { body: data });
   }
 
   public put(path: string, data: any, headers?: Record<string, any>) {
-    return this.request("PUT", path, headers, data);
+    return this.request("PUT", path, headers, { body: data });
   }
 
   public delete(path: string, headers?: Record<string, any>) {
