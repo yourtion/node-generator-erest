@@ -1,6 +1,6 @@
 const Generator = require('yeoman-generator');
 
-const LIBS = ['jwt', 'xlsx', 'session'];
+const LIBS = ['jwt', 'xlsx', 'session', 'curl'];
 
 module.exports = class extends Generator {
   constructor(args, opts) {
@@ -40,6 +40,9 @@ module.exports = class extends Generator {
         break;
       case 'session':
         file = 'session.ts';
+        break;
+      case 'curl':
+        file = 'curl.ts';
         break;
       default:
         break;
