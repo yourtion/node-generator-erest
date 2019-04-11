@@ -134,10 +134,11 @@ export function getWebLogger(name: string, addtion: Record<string, any> = {}): I
   return (webLogger as pino.Logger).child({ ...addtion, name }) as ILogger;
 }
 
-export function leiWebLogMiddleware(logger: ILogger = getWebLogger("respone"), level: pino.Level = "trace") {
+export function leiWebLogMiddleware(logger: ILogger = getWebLogger("respone"), defaultLevel: pino.Level = "trace") {
   return function(ctx: any) {
     const start = Date.now();
     ctx.onFinish(function() {
+      let level = defaultLevel;
       const time = Date.now() - start;
       const p = ctx.route.path || ctx.request.path;
       const obj: any = { code: ctx.response.statusCode, time, reqId: ctx.$reqId };
