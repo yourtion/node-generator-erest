@@ -80,7 +80,7 @@ export function getTimeString(pad = "", time = new Date()) {
 
 /** 获取日期时间字符串（2018-01-01 12:30:59） */
 export function getDateTimeString(pad = "", time = new Date()) {
-  return `${getDateString("-", time)} ${getTimeString(":", time)}`;
+  return `${getDateString("-", time)}${pad}${getTimeString(":", time)}`;
 }
 
 /** 今天的日期整数表示：20180913 */
