@@ -26,7 +26,7 @@ exports.prompts = function prompts() {
     {
       name: 'name',
       message: 'package name:',
-      default: this.appname && this.appname.replace(/\s/g, '-').replace('node-', ''),
+      default: this.appname && this.appname.replace(/\s/g, '-').replace('node-', '').replace('-server', ''),
       validate: input => {
         return !!input.match('^(?:@[a-z0-9-~][a-z0-9-._~]*/)?[a-z0-9-~][a-z0-9-._~]*$');
       },
