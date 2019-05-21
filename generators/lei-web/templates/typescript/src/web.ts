@@ -1,4 +1,5 @@
 import * as base from "@leizm/web";
+import { Query } from "mysql";
 import { IPageParams, getLogger, errors, config, utils } from "./global";
 import { Service, Model } from "./global/gen/core.gen";
 import { IPageResult } from "./models/base";
@@ -141,5 +142,22 @@ export class Response extends base.Response {
     this.setHeader("Content-Disposition", `attachment; filename=${filename}.${filetype}`);
     this.setHeader("Content-Length", String(buffer.length));
     this.end(buffer);
+  }
+
+  /** 导出csv */
+  public csv(filename: string, header: Array<String>, query: Query) {
+    this.setHeaders({
+      "Content-Type": "application/octet-stream;charset=utf-8",
+      "Content-Disposition": `attachment; filename=${filename}`,
+    });
+    this.write("\uFEFF");
+    this.write(header.map(item => utils.csvStringParser(item)).join(",") + "\n");
+    query.on("result", row => {
+      const arr = Object.keys(row).map((key: string) => row[key]);
+      this.write(arr.map(item => utils.csvStringParser(item)).join(",") + "\n");
+    });
+    query.on("end", () => {
+      this.end();
+    });
   }
 }

@@ -3,7 +3,7 @@
  * @author Yourtion Guo <yourtion@gmail.com>
  */
 
-import { createHash, randomBytes } from "crypto";
+import { createHash, randomBytes, createCipher, createDecipher } from "crypto";
 import { exists, readFile, writeFile } from "fs";
 import { format, parse } from "url";
 import { promisify } from "util";
@@ -284,6 +284,55 @@ export function getWeekNumber(day = new Date()) {
 export function getYearAndWeek(day = new Date()) {
   const week = getWeekNumber(day);
   return `${week[0]}${leftPad(week[1], 2)}`;
+}
+
+/** aes128加密 */
+export function encodeAes128(str: string, secret: string) {
+  const cipher = createCipher("aes128", secret);
+  let encrypted = cipher.update(str, "utf8", "hex");
+  encrypted += cipher.final("hex");
+  return encrypted;
+}
+
+/** aes128解密 */
+export function decodeAes128(hash: string, secret: string) {
+  const decipher = createDecipher("aes128", secret);
+  let decrypted = decipher.update(hash, "hex", "utf8");
+  decrypted += decipher.final("utf8");
+  return decrypted;
+}
+
+/** 判断一个文件是否xlsx */
+export function isXlsx(fileName: string) {
+  return /.*\.xlsx$/.test(fileName);
+}
+
+/** csv字符串解析 */
+export function csvStringParser(str: any, sep = ",") {
+  const c = new RegExp(sep, "g");
+  const q = new RegExp('"', "g");
+  const n = new RegExp(/\n|\r/, "g");
+  let item = str;
+  if (str === 0) {
+    return "0";
+  } else if (str === undefined || str === null) {
+    return "";
+  }
+  if (typeof item !== "string") {
+    const s = item.toString();
+    if (s === "[object Object]") {
+      item = JSON.stringify(item);
+      if (item === "{}") {
+        return "";
+      }
+    } else {
+      item = s;
+    }
+  }
+  if (item.search(c) >= 0 || item.search(q) >= 0 || item.search(n) >= 0) {
+    return '"' + item.replace(q, '""').replace(n, "") + '"';
+  }
+  return item + "";
 }
 
 export const existsAsync = promisify(exists);
