@@ -2,7 +2,7 @@
  * @file base model 基础模块
  * @author Yourtion Guo <yourtion@gmail.com>
  */
-import Q, { QueryBuilder, AdvancedCondition, AdvancedUpdate } from "@leizm/sql";
+import Q, { QueryBuilder, AdvancedCondition, AdvancedUpdate, RawCondition } from "@leizm/sql";
 import { config, errors, IConnectionPromise, mysql, utils } from "../global";
 import { IPageParams, IPoolPromise } from "../global";
 import { BaseModel } from "../core";
@@ -16,7 +16,7 @@ export interface IPageResult<T> {
 }
 
 export type IRecord<K> = Partial<K> | Partial<Pick<AdvancedUpdate, keyof K>>;
-export type IConditions<K> = Partial<K> | Partial<Pick<AdvancedCondition, keyof K>>;
+export type IConditions<K> = Partial<K> | Partial<Pick<AdvancedCondition, keyof K>> | RawCondition;
 export type IPrimary = string | number;
 export type Orders = Array<[string, boolean]>;
 export interface OkPacket {
