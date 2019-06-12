@@ -82,7 +82,7 @@ export class Request extends base.Request {
 
   /** User-Agent */
   public get $ua() {
-    return this.headers["user-agent"];
+    return this.headers["user-agent"] || "";
   }
 
   /** 分页参数 */
