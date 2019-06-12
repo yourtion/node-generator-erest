@@ -31,11 +31,11 @@
   },
   "homepage": "https://github.com/yourtion/node-generator-erest#readme",
   "dependencies": {
-    "yeoman-generator": "^4.0.0"
+    "yeoman-generator": "^4.0.1"
   },
   "devDependencies": {
     "eslint": "^5.16.0",
     "eslint-config-guo": "^0.8.0",
-    "prettier": "^1.17.1"
+    "prettier": "^1.18.2"
   }
 }
