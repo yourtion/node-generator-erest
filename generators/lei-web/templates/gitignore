@@ -61,3 +61,8 @@ dist
 docs
 
 package-lock.json
+
+config/*
+!config/base.yaml
+!config/test.yaml
+!config/dev.yaml
