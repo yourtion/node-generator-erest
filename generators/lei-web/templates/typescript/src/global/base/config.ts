@@ -9,6 +9,7 @@ import { merge } from "lodash";
 import path from "path";
 
 import { IConfig } from "../gen/config.gen";
+import { deepFreeze } from "./utils"
 
 export const env = process.env.NODE_ENV || "dev";
 
@@ -44,5 +45,8 @@ if (appInstance) {
     loadConfigFileSync(name);
   }
 }
+
+// 深度冻结配置
+deepFreeze(config);
 
 export default config;

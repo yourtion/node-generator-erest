@@ -29,6 +29,27 @@ export function md5(str: string) {
     .digest("hex");
 }
 
+export function deepFreeze(o) {
+  Object.freeze(o);
+
+  const oIsFunction = typeof o === "function";
+  const hasOwnProp = Object.prototype.hasOwnProperty;
+
+  Object.getOwnPropertyNames(o).forEach(function(prop) {
+    if (
+      hasOwnProp.call(o, prop) &&
+      (oIsFunction ? prop !== "caller" && prop !== "callee" && prop !== "arguments" : true) &&
+      o[prop] !== null &&
+      (typeof o[prop] === "object" || typeof o[prop] === "function") &&
+      !Object.isFrozen(o[prop])
+    ) {
+      deepFreeze(o[prop]);
+    }
+  });
+
+  return o;
+}
+
 /* 转换 Unix 时间戳到 MySQL */
 export function unixTime(unixtime: number) {
   const u = new Date(unixtime);
