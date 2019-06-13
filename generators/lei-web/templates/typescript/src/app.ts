@@ -9,7 +9,7 @@ const app = new Application();
 const router = new Router();
 
 import apiService from "./api";
-import { config, errors, logger, leiWebLogMiddleware } from "./global";
+import { config, errors, leiWebLogMiddleware } from "./global";
 
 // 静态文件
 app.use("/h5", component.serveStatic(resolve(__dirname, "../public/h5")));
@@ -51,7 +51,7 @@ router.use("/", (ctx, err: any) => {
     ctx.response.err(err);
   }
   if (err.log || err.log === undefined) {
-    logger.error(err);
+    ctx.log.error(err);
   }
   ctx.next();
 });
