@@ -9,7 +9,7 @@ import { merge } from "lodash";
 import path from "path";
 
 import { IConfig } from "../gen/config.gen";
-import { deepFreeze } from "./utils"
+import { deepFreeze } from "./utils";
 
 export const env = process.env.NODE_ENV || "dev";
 
