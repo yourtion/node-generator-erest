@@ -5,5 +5,5 @@ api
   .get("/index")
   .title("测试Index")
   .register(ctx => {
-    ctx.response.ok("Hello, API Framework Index");
+    ctx.response.ok("Hello, ERest Index");
   });
