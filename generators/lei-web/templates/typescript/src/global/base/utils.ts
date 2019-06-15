@@ -29,7 +29,8 @@ export function md5(str: string) {
     .digest("hex");
 }
 
-export function deepFreeze(o) {
+/** 深度冻结对象 */
+export function deepFreeze(o: any) {
   Object.freeze(o);
 
   const oIsFunction = typeof o === "function";
