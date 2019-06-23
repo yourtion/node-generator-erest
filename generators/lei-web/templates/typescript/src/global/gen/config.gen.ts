@@ -8,7 +8,6 @@ export interface IRedis {
   port: number;
   db: number;
   keyPrefix: string;
-  showFriendlyErrorStack: boolean;
 }
 
 export interface IMysql {
