@@ -1,6 +1,6 @@
 {
   "name": "generator-erest",
-  "version": "0.21.2",
+  "version": "0.21.3",
   "description": "Yoman generator for erest. Easy build rest api",
   "files": [
     "utils",
@@ -12,7 +12,7 @@
     "tag": "git tag v`node -p 'require(\"./package\").version'`",
     "prepublishOnly": "npm run format",
     "postpublish": "npm run tag",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "export NODE_ENV=test && mocha test/*.js"
   },
   "repository": {
     "type": "git",
@@ -36,6 +36,8 @@
   "devDependencies": {
     "eslint": "^5.16.0",
     "eslint-config-guo": "^0.8.0",
-    "prettier": "^1.18.2"
+    "mocha": "^6.1.4",
+    "prettier": "^1.18.2",
+    "yeoman-test": "^2.0.0"
   }
 }
