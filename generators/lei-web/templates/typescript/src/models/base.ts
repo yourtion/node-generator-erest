@@ -76,13 +76,13 @@ function removeUndefined(object: Record<string, any>) {
 }
 
 /** 初始化参数 */
-export interface IBaseOptions {
+export interface IBaseOptions<T> {
   /** 表前缀 */
   prefix?: string;
   /** 主键 key */
   primaryKey?: string;
   /** 默认字段 */
-  fields?: string[];
+  fields?: Array<keyof T>;
   /** 默认排序key */
   order?: string;
   /** 连接 */
@@ -93,20 +93,20 @@ export default class Base<T> extends BaseModel {
   public table: string;
   public primaryKey: string;
   public connect = mysql;
-  public fields: string[];
+  public fields: Array<keyof T>;
   public order?: string | Orders;
 
   /**
    * Creates an instance of Base.
    * @param {Any} ctx 上下文
-   * @param {String} tabletable 表名
+   * @param {String} table 表名
    * @param {Object} [options={}]
    * @param {String} options.prefix - 表前缀
    * @param {String} options.primaryKey 主键 key
    * @param {Array} options.fields 默认字段
    * @param {String} options.order 默认排序key
    */
-  constructor(ctx: Context, table: string, options: IBaseOptions = {}) {
+  constructor(ctx: Context, table: string, options: IBaseOptions<T> = {}) {
     super(ctx);
     const tablePrefix = options.prefix !== undefined ? options.prefix : config.tablePrefix;
     this.table = tablePrefix ? tablePrefix + table : table;
@@ -197,7 +197,7 @@ export default class Base<T> extends BaseModel {
     return this.countRaw(this.connect, conditions);
   }
 
-  public _getByPrimary(primary: IPrimary, fields: string[]) {
+  public _getByPrimary(primary: IPrimary, fields: Array<keyof T>) {
     if (primary === undefined) {
       throw new Error("`primary` 不能为空");
     }
@@ -466,13 +466,13 @@ export default class Base<T> extends BaseModel {
   /**
    * 根据条件获取列表
    */
-  public list(conditions: IConditions<T>, fields?: string[], pages?: IPageParams): Promise<T[]>;
+  public list(conditions: IConditions<T>, fields?: Array<keyof T>, pages?: IPageParams): Promise<T[]>;
   /**
    * 根据条件获取列表
    */
   public list(
     conditions: IConditions<T>,
-    fields?: string[],
+    fields?: Array<keyof T>,
     limit?: number,
     offset?: number,
     order?: string | Orders,
@@ -487,7 +487,7 @@ export default class Base<T> extends BaseModel {
    */
   public page(
     conditions: IConditions<T>,
-    fields?: string[],
+    fields?: Array<keyof T>,
     limit?: number,
     offset?: number,
     order?: string,
@@ -496,7 +496,7 @@ export default class Base<T> extends BaseModel {
   /**
    * 根据条件获取分页内容（比列表多出总数计算）
    */
-  public page(conditions: IConditions<T>, fields?: string[], pages?: IPageParams): Promise<IPageResult<T>>;
+  public page(conditions: IConditions<T>, fields?: Array<keyof T>, pages?: IPageParams): Promise<IPageResult<T>>;
   public page(conditions = {}, fields = this.fields, ...args: any[]): Promise<IPageResult<T>> {
     const listSql = this.list(conditions, fields, ...args);
     const countSql = this.count(conditions);
