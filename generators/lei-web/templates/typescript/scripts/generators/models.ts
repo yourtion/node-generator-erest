@@ -161,7 +161,7 @@ function genFile(
   get ${tableCamelCase}() {
     return this.getCache(${tableString.toUpperCase()}_M_SYM, ${firstUpperCase(tableString)}Model);
   }`);
-
+  
   // 生成 Models 文件
   const imp = `IModels${tableString}, ${tableCamelCase}Table, ${tableCamelCase}Fields, ${tableCamelCase}PRI`;
   result.schemas[tableName] = `
@@ -171,11 +171,11 @@ function genFile(
      */
 
     import {${imp}} from "../global/gen/models.gen";
-    import Base from "./base";
+    import Base, { IBaseOptions } from "./base";
     import { Context } from "../web";
 
     export class ${tableString}Model extends Base<IModels${tableString}> {
-      constructor(ctx: Context ,options = {}) {
+      constructor(ctx: Context ,options: IBaseOptions<IModels${tableString}> = {}) {
         const opt = Object.assign(${opt}, options);
         super(ctx, ${tableCamelCase}Table, opt);
       }

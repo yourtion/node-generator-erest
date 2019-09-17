@@ -30,6 +30,10 @@ export interface OkPacket {
   changedRows: number;
 }
 
+export type Fields<T> = {
+  [P in keyof T]: P extends string ? P : never;
+}[keyof T];
+
 /** 联表查询 */
 export interface IJoinTable {
   /** 表格 */
@@ -82,7 +86,7 @@ export interface IBaseOptions<T> {
   /** 主键 key */
   primaryKey?: string;
   /** 默认字段 */
-  fields?: Array<keyof T>;
+  fields?: Array<Fields<T>>;
   /** 默认排序key */
   order?: string;
   /** 连接 */
@@ -93,7 +97,7 @@ export default class Base<T> extends BaseModel {
   public table: string;
   public primaryKey: string;
   public connect = mysql;
-  public fields: Array<keyof T>;
+  public fields: Array<Fields<T>>;
   public order?: string | Orders;
 
   /**
@@ -197,7 +201,7 @@ export default class Base<T> extends BaseModel {
     return this.countRaw(this.connect, conditions);
   }
 
-  public _getByPrimary(primary: IPrimary, fields: Array<keyof T>) {
+  public _getByPrimary(primary: IPrimary, fields: Array<Fields<T>>) {
     if (primary === undefined) {
       throw new Error("`primary` 不能为空");
     }
@@ -418,7 +422,7 @@ export default class Base<T> extends BaseModel {
   /**
    * 根据主键对数据列执行加一操作
    */
-  public incrFields(primary: IPrimary | IPrimary[], ...fields: Array<[string, number]>) {
+  public incrFields(primary: IPrimary | IPrimary[], ...fields: Array<[Fields<T>, number]>) {
     return this.incrFieldsRaw(this.connect, primary, ...fields);
   }
 
@@ -466,13 +470,13 @@ export default class Base<T> extends BaseModel {
   /**
    * 根据条件获取列表
    */
-  public list(conditions: IConditions<T>, fields?: Array<keyof T>, pages?: IPageParams): Promise<T[]>;
+  public list(conditions: IConditions<T>, fields?: Array<Fields<T>>, pages?: IPageParams): Promise<T[]>;
   /**
    * 根据条件获取列表
    */
   public list(
     conditions: IConditions<T>,
-    fields?: Array<keyof T>,
+    fields?: Array<Fields<T>>,
     limit?: number,
     offset?: number,
     order?: string | Orders,
@@ -487,7 +491,7 @@ export default class Base<T> extends BaseModel {
    */
   public page(
     conditions: IConditions<T>,
-    fields?: Array<keyof T>,
+    fields?: Array<Fields<T>>,
     limit?: number,
     offset?: number,
     order?: string,
@@ -496,7 +500,7 @@ export default class Base<T> extends BaseModel {
   /**
    * 根据条件获取分页内容（比列表多出总数计算）
    */
-  public page(conditions: IConditions<T>, fields?: Array<keyof T>, pages?: IPageParams): Promise<IPageResult<T>>;
+  public page(conditions: IConditions<T>, fields?: Array<Fields<T>>, pages?: IPageParams): Promise<IPageResult<T>>;
   public page(conditions = {}, fields = this.fields, ...args: any[]): Promise<IPageResult<T>> {
     const listSql = this.list(conditions, fields, ...args);
     const countSql = this.count(conditions);
