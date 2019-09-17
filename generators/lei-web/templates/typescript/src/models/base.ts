@@ -18,7 +18,7 @@ export interface IPageResult<T> {
 export type IRecord<K> = Partial<K> | Partial<Pick<AdvancedUpdate, keyof K>>;
 export type IConditions<K> = Partial<K> | Partial<Pick<AdvancedCondition, keyof K>> | RawCondition;
 export type IPrimary = string | number;
-export type Orders = Array<[string, boolean]>;
+export type Orders<T> = Array<[Fields<T>, boolean]>;
 export interface OkPacket {
   fieldCount: number;
   affectedRows: number;
@@ -33,6 +33,8 @@ export interface OkPacket {
 export type Fields<T> = {
   [P in keyof T]: P extends string ? P : never;
 }[keyof T];
+
+export type Unwrap<T> = T extends Array<infer U> ? U : T extends Promise<infer U> ? U : never;
 
 /** 联表查询 */
 export interface IJoinTable {
@@ -58,7 +60,7 @@ export interface IJoinOptions {
   fields?: string[];
   limit: number;
   offset: number;
-  order?: string | Orders;
+  order?: Fields<any> | Orders<any>;
   asc?: boolean;
 }
 
@@ -88,27 +90,30 @@ export interface IBaseOptions<T> {
   /** 默认字段 */
   fields?: Array<Fields<T>>;
   /** 默认排序key */
-  order?: string;
+  order?: Fields<T>;
   /** 连接 */
   connect?: IPoolPromise;
 }
 
+/**
+ * @template {Object} T
+ */
 export default class Base<T> extends BaseModel {
   public table: string;
   public primaryKey: string;
   public connect = mysql;
   public fields: Array<Fields<T>>;
-  public order?: string | Orders;
+  public order?: Fields<T> | Orders<T>;
 
   /**
    * Creates an instance of Base.
-   * @param {Any} ctx 上下文
-   * @param {String} table 表名
+   * @param {Context} ctx 上下文
+   * @param {string} table 表名
    * @param {Object} [options={}]
-   * @param {String} options.prefix - 表前缀
-   * @param {String} options.primaryKey 主键 key
-   * @param {Array} options.fields 默认字段
-   * @param {String} options.order 默认排序key
+   * @param {string} options.prefix - 表前缀
+   * @param {string} options.primaryKey 主键 key
+   * @param {Fields<T>} options.fields 默认字段
+   * @param {Orders<T>} options.order 默认排序key
    */
   constructor(ctx: Context, table: string, options: IBaseOptions<T> = {}) {
     super(ctx);
@@ -141,8 +146,8 @@ export default class Base<T> extends BaseModel {
 
   /**
    * 输出 SQL Debug
-   * @param {String} name Debug 前缀
-   * @returns {String} SQL
+   * @param {string} name Debug 前缀
+   * @returns {string} SQL
    */
   public debugSQL(name: string) {
     return (sql: QueryBuilder | string, ...info: any[]) => {
@@ -153,8 +158,8 @@ export default class Base<T> extends BaseModel {
 
   /**
    * 查询方法（内部查询尽可能调用这个，会打印Log）
-   * @param sql 数据库查询语句
-   * @param connection 数据库连接
+   * @param {QueryBuilder | string} sql 数据库查询语句
+   * @param {IConnectionPromise | IPoolPromise} [connection=mysql] 数据库连接
    */
   public async query(sql: QueryBuilder | string, connection: IConnectionPromise | IPoolPromise = mysql) {
     const logger = (connection as IConnectionPromise).debug ? (connection as IConnectionPromise) : this.log;
@@ -287,8 +292,8 @@ export default class Base<T> extends BaseModel {
   /**
    * 根据查询条件删除数据
    *
-   * @param {Object} [object={}] 字段、值对象
-   * @param {Number} [limit=1] 删除条数
+   * @param {IConditions<T>} conditions 字段、值对象
+   * @param {number} [limit=1] 删除条数
    */
   public deleteByField(conditions: IConditions<T>, limit = 1) {
     return this.deleteByFieldRaw(this.connect, conditions, limit);
@@ -297,7 +302,7 @@ export default class Base<T> extends BaseModel {
   /**
    * 根据查询条件获取记录
    *
-   * @param {Object} [object={}] 字段、值对象
+   * @param {IConditions<T>} [conditions={}] 字段、值对象
    * @param {Array} [fields=this.fields] 所需要的列数组
    */
   public getByField(conditions: IConditions<T> = {}, fields = this.fields): Promise<T[]> {
@@ -394,7 +399,7 @@ export default class Base<T> extends BaseModel {
     return this.createOrUpdateRaw(this.connect, objects, update);
   }
 
-  public _incrFields(primary: IPrimary | IPrimary[], ...fields: Array<[string, number]>) {
+  public _incrFields(primary: IPrimary | IPrimary[], ...fields: Array<[Fields<T>, number]>) {
     if (primary === undefined) {
       throw new Error("`primary` 不能为空");
     }
@@ -414,7 +419,7 @@ export default class Base<T> extends BaseModel {
   public incrFieldsRaw(
     connect: IConnectionPromise | IPoolPromise,
     primary: IPrimary | IPrimary[],
-    ...fields: Array<[string, number]>
+    ...fields: Array<[Fields<T>, number]>
   ): Promise<number> {
     return this.query(this._incrFields(primary, ...fields), connect).then((res: OkPacket) => res && res.affectedRows);
   }
@@ -454,7 +459,7 @@ export default class Base<T> extends BaseModel {
 
   public listRaw(
     connect: IConnectionPromise | IPoolPromise,
-    conditions = {},
+    conditions: IConditions<T> = {},
     fields = this.fields,
     ...args: any[]
   ): Promise<T[]> {
@@ -479,7 +484,7 @@ export default class Base<T> extends BaseModel {
     fields?: Array<Fields<T>>,
     limit?: number,
     offset?: number,
-    order?: string | Orders,
+    order?: Fields<T> | Orders<T>,
     asc?: boolean
   ): Promise<T[]>;
   public list(conditions = {}, fields = this.fields, ...args: any[]) {
@@ -494,7 +499,7 @@ export default class Base<T> extends BaseModel {
     fields?: Array<Fields<T>>,
     limit?: number,
     offset?: number,
-    order?: string,
+    order?: Fields<T>,
     asc?: boolean
   ): Promise<IPageResult<T>>;
   /**
@@ -510,10 +515,13 @@ export default class Base<T> extends BaseModel {
   /**
    * 执行事务（通过传人方法）
    *
-   * @param {String} name
-   * @param {Function} func
+   * @param {string} name
+   * @param {function} func
    */
-  public async transactions(name: string, func: (conn: IConnectionPromise) => Promise<any>): Promise<any> {
+  public async transactions<TName extends string, TFunc extends (conn: IConnectionPromise) => Promise<any>>(
+    name: TName,
+    func: TFunc
+  ): Promise<Unwrap<ReturnType<TFunc>>> {
     if (!name) {
       throw new errors.DatabaseError("`name` 不能为空");
     }
