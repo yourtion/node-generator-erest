@@ -34,7 +34,7 @@ export type Fields<T> = {
   [P in keyof T]: P extends string ? P : never;
 }[keyof T];
 
-export type Unwrap<T> = T extends Array<infer U> ? U : T extends Promise<infer U> ? U : never;
+export type Unwrap<T> = T extends Array<infer U> ? U : T extends Promise<infer U> ? U : T;
 
 /** 联表查询 */
 export interface IJoinTable {
