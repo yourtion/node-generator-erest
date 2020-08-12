@@ -1,6 +1,6 @@
 {
   "name": "generator-erest",
-  "version": "0.21.3",
+  "version": "0.21.4",
   "description": "Yoman generator for erest. Easy build rest api",
   "files": [
     "utils",
