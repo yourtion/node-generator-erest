@@ -84,6 +84,16 @@ export function createRequestId(): string {
   );
 }
 
+export function randomId(len: number) {
+  return Math.random()
+    .toString(36)
+    .substr(3, len);
+}
+
+export function randomNum(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 /** 获取 timestamp */
 export function genTimestamp(after = 0) {
   const now = new Date();
