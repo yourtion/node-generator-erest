@@ -67,7 +67,7 @@ module.exports = class extends Generator {
         projectName: this.prop.name,
         target: this.prop.target,
       };
-      const opt = !this.isExits ? {} : { globOptions: { ignore: config.updateIgnoreTS } };
+      const opt = !this.isExits ? {} : { globOptions: { ignore: config.updateIgnoreTS }};
       for (const dis of ['bin', 'src', 'test', 'scripts', '.vscode']) {
         this.fs.copy(this.templatePath(`typescript/${dis}`), this.destinationPath(dis), opt);
       }
