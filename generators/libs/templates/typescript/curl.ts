@@ -47,7 +47,7 @@ export interface IResponse {
 }
 
 const AGENT_OPTION = { keepAlive: true };
-const NOOP = (...args: any[]) => { };
+const NOOP = (...args: any[]) => {};
 
 function DEFAULT_BEFOR(opt: IReqOption) {
   return opt;

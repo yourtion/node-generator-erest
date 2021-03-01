@@ -20,5 +20,21 @@
   "prettier": {
     "printWidth": 120,
     "trailingComma": "es5"
+  },
+  "mocha": {
+    "require": [
+      "ts-node/register",
+      "source-map-support/register"
+    ],
+    "recursive": true,
+    "colors": true,
+    "exit": true,
+    "extension": [
+      "ts",
+      "js",
+      "mjs"
+    ],
+    "check-leaks": false,
+    "timeout": 20000
   }
 }

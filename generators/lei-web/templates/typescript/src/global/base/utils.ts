@@ -199,7 +199,8 @@ export function removeUndefined(object: any) {
  */
 export function mergeUrl(dist: string, query: any, hash: string) {
   const distUrl = parse(dist, true);
-  delete distUrl.search;
+  // TODO: FIX delete
+  // delete distUrl.search;
   Object.assign(distUrl.query, query);
   distUrl.hash = hash;
   return format(distUrl);

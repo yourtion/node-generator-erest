@@ -26,7 +26,7 @@ function getConfigStringSync(filename: string) {
 }
 
 function loadConfigFileSync(filename: string) {
-  const conf = yaml.safeLoad(getConfigStringSync(filename));
+  const conf = yaml.load(getConfigStringSync(filename));
   merge(config, conf);
 }
 

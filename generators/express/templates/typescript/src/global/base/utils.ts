@@ -235,7 +235,7 @@ export function getErrorSourceFromCo(err: Error, base = "/src/") {
  */
 export function mergeUrl(dist: string, query: any, hash: string) {
   const distUrl = parse(dist, true);
-  delete distUrl.search;
+  // delete distUrl.search;
   Object.assign(distUrl.query, query);
   distUrl.hash = hash;
   return format(distUrl);

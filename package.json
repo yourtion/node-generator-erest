@@ -1,6 +1,6 @@
 {
   "name": "generator-erest",
-  "version": "0.21.4",
+  "version": "0.22.0",
   "description": "Yoman generator for erest. Easy build rest api",
   "files": [
     "utils",
@@ -8,7 +8,7 @@
     "generators"
   ],
   "scripts": {
-    "format": "eslint . --fix && prettier --write \"./**/*.{js,ts,json,yaml}\"",
+    "format": "prettier --write \"./**/*.{js,ts,json,yaml}\"",
     "tag": "git tag v`node -p 'require(\"./package\").version'`",
     "prepublishOnly": "npm run format",
     "postpublish": "npm run tag",

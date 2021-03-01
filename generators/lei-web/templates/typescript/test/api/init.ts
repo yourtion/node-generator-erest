@@ -17,7 +17,7 @@ const testData = {};
 
 try {
   const dataFile = process.env.TEST_DATA || path.resolve(__dirname, "./data.yaml");
-  const conf = yaml.safeLoad(fs.readFileSync(dataFile).toString());
+  const conf = yaml.load(fs.readFileSync(dataFile).toString());
   merge(testData, conf);
 } catch (err) {
   // tslint:disable-next-line no-console
